@@ -14,7 +14,7 @@
 - **Homepage & Menu:** @Arshiaes
 - **Seller & Product Page:** @Etom
 - **News & News Details Page:** @Jabu477
-- **User Authentication Page:** Ashfaq
+
 
 
 ### Additional Information:
