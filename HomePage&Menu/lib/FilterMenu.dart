@@ -33,7 +33,7 @@ class FilterMenu extends StatelessWidget {
               child: Text(
                 items[index],
                 style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.blue, // تغییر رنگ متن هنگام انتخاب
+                  color: isSelected ? Colors.white : Colors.blue, 
                   fontWeight: FontWeight.bold,
                 ),
               ),
