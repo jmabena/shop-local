@@ -26,16 +26,16 @@ class AllStoresSection extends StatelessWidget {
             height: 450,
             child:
               ListView.builder(
-                //scrollDirection: Axis.vertical, // اسکرول عمودی
+                //scrollDirection: Axis.vertical, 
                 itemCount: imageUrls.length,
                 itemBuilder: (context, index) {
                   return Container(
-                    //width: 200, // پر کردن کل عرض
-                    margin: const EdgeInsets.symmetric(vertical: 15 , horizontal: 10), // فاصله بین تصاویر
+                    //width: 200, 
+                    margin: const EdgeInsets.symmetric(vertical: 15 , horizontal: 10), 
                     child: Image.asset(
                       imageUrls[index],
-                      width: double.infinity, // اطمینان از پر کردن عرض
-                      fit: BoxFit.cover, // پر کردن کل عرض بدون تغییر نسبت تصویر
+                      width: double.infinity, 
+                      fit: BoxFit.cover, 
                     ),
                   );
                 },
