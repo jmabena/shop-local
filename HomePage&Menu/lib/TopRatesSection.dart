@@ -60,7 +60,7 @@ class TopRatesSection extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 5),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.blue, width: 2), // بوردر برای هر عکس
+        border: Border.all(color: Colors.blue, width: 2), 
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(10),
