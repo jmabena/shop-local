@@ -73,12 +73,12 @@ class _HomePageState extends State<HomePage> {
                     height: 100,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2), // اضافه کردن بوردر سفید
+                      border: Border.all(color: Colors.white, width: 2), 
 
                     ),
                     child: ClipOval(
                       child: Image.asset(
-                        "assets/images/defaultUserImage.png", // مسیر عکس لوکال
+                        "assets/images/defaultUserImage.png", 
                         fit: BoxFit.cover,
                       ),
                     ),
