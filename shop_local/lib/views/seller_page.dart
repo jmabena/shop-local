@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shop_local/views/product_page.dart';
 
 class SellerPage extends StatefulWidget {
-  const SellerPage({super.key});
+  final String url;
+  const SellerPage({super.key, required this.url});
 
   @override
   State<SellerPage> createState() => _SellerPageState();
@@ -36,17 +37,13 @@ class _SellerPageState extends State<SellerPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {},
-        ),
         elevation: 10,
       ),
       body: Container(
         padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
         child: ListView(
           children: [
-            buildHeader(context),
+            buildHeader(context, widget.url),
             SizedBox(height: 10),
             Container(
               padding: const EdgeInsets.all(10.0),
@@ -76,7 +73,7 @@ class _SellerPageState extends State<SellerPage> {
     );
   }
 
-  Widget buildHeader(BuildContext context) {
+  Widget buildHeader(BuildContext context, String url) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -84,7 +81,7 @@ class _SellerPageState extends State<SellerPage> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             image: DecorationImage(
-              image: AssetImage('assets/bg.jpg'),
+              image: AssetImage(url),
               fit: BoxFit.cover,
             ),
           ),
@@ -162,6 +159,7 @@ class _SellerPageState extends State<SellerPage> {
       itemBuilder: (context, index) {
         return Column(
           mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               decoration: BoxDecoration(
