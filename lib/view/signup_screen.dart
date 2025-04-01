@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'directory_screen.dart'; // Adjust the import based on your project structure
+
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -33,29 +37,91 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Future<void> _submitForm() async {
-    if (_formKey.currentState!.validate()) {
-      // Form is valid - proceed with sign up
+  if (_formKey.currentState!.validate()) {
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+
+      // 1. Create user with Firebase Authentication
+      final credential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          );
+
+      // 2. Save additional user data to Firestore
       final userData = {
+        'uid': credential.user!.uid,
         'email': _emailController.text.trim(),
-        'password': _passwordController.text,
         'userType': _userTypeIndex == 0 ? 'buyer' : 'seller',
         'address': _addressController.text.trim(),
         'city': _cityController.text.trim(),
         'postalCode': _postalCodeController.text.trim(),
         'createdAt': DateTime.now().toIso8601String(),
+        'updatedAt': DateTime.now().toIso8601String(),
       };
 
-      // Here you would typically:
-      // 1. Call your authentication service
-      // 2. Save additional user data to Firestore/backend
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(credential.user!.uid)
+          .set(userData);
+
       // 3. Navigate to appropriate screen based on user type
+      Navigator.of(context).pop(); // Remove loading dialog
+      
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => _userTypeIndex == 0
+              ? BusinessDirectoryPage()
+              : BusinessDirectoryPage(),
+        ),
+      );
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Account created successfully!'),
           backgroundColor: Colors.green,
         ),
       );
+    } on FirebaseAuthException catch (e) {
+      Navigator.of(context).pop(); // Remove loading dialog
+      
+      String errorMessage;
+      switch (e.code) {
+        case 'email-already-in-use':
+          errorMessage = 'This email is already registered.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'Please enter a valid email address.';
+          break;
+        case 'weak-password':
+          errorMessage = 'Password should be at least 6 characters.';
+          break;
+        default:
+          errorMessage = 'Registration failed. Please try again.';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } catch (e) {
+      Navigator.of(context).pop(); // Remove loading dialog
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('An unexpected error occurred: ${e.toString()}'),
+          backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -75,9 +141,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
             children: [
               // Logo
               SvgPicture.asset(
-                'assets/logo.svg',
-                height: 80,
-                color: Theme.of(context).primaryColor,
+                'assets/images/logo.svg',
+                height: 140,
+                // color: Theme.of(context).primaryColor,
               ),
               const SizedBox(height: 30),
 
