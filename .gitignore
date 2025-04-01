@@ -1,0 +1,70 @@
+
+Mabena, Jabulani
+5:52 AM (1 minute ago)
+to me
+
+# Flutter-specific ignores
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
+build/
+
+# Android-specific ignores
+android/app/google-services.json
+android/.gradle/
+android/build/
+android/outputs/
+android/local.properties
+android/key.properties
+android/.cxx/
+android/.ndk/
+
+# iOS-specific ignores
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/App.framework/
+ios/Flutter/Flutter.framework/
+ios/build/
+ios/DerivedData/
+ios/Runner.xcworkspace/xcuserdata/
+ios/*.mode1v3
+ios/*.perspectivev3
+ios/*.pbxuser
+ios/Flutter/Generated.xcconfig
+
+# macOS-specific ignores (if applicable)
+macos/Pods/
+macos/.symlinks/
+macos/Flutter/App.framework/
+macos/Flutter/Flutter.framework/
+macos/build/
+macos/DerivedData/
+macos/Runner.xcworkspace/xcuserdata/
+macos/*.mode1v3
+macos/*.perspectivev3
+macos/*.pbxuser
+macos/Flutter/Generated.xcconfig
+
+# Web-specific ignores (if applicable)
+web/build/
+
+# Firebase-related ignores
+lib/firebase_options.dart
+
+# IDE-specific ignores (Android Studio / IntelliJ IDEA)
+.idea/
+*.iml
+.DS_Store
+
+# General ignores
+# Logs
+*.log
+
+# Packages
+**/node_modules
+pubspec.lock
+
+# Other temporary files
+**/.DS_Store
+**/thumb.db

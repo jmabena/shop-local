@@ -41,46 +41,49 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDKnkoIrJtqhh6rC5p8dNwraiqMa9ubFqU',
-    appId: '1:431763454927:web:87820d8219e46aa5b170ba',
-    messagingSenderId: '431763454927',
-    projectId: 'shoplocal-299a6',
-    authDomain: 'shoplocal-299a6.firebaseapp.com',
-    storageBucket: 'shoplocal-299a6.firebasestorage.app',
+    apiKey: 'AIzaSyCz4eg1YLa-juqMrbim4B8jBIK13Ircack',
+    appId: '1:212050889502:web:83276cb335d611a2ce570f',
+    messagingSenderId: '212050889502',
+    projectId: 'shop-local-b69a3',
+    authDomain: 'shop-local-b69a3.firebaseapp.com',
+    storageBucket: 'shop-local-b69a3.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAJtFmnDF62Kc9BWp56X3vb5t8Az9YpnXk',
-    appId: '1:431763454927:android:b004719f15f14eceb170ba',
-    messagingSenderId: '431763454927',
-    projectId: 'shoplocal-299a6',
-    storageBucket: 'shoplocal-299a6.firebasestorage.app',
+    apiKey: 'AIzaSyAV_Tm8KoVlY1xolCHBKbCXVEHBTYEGS5U',
+    appId: '1:212050889502:android:8dc35fc3bd4d0ef3ce570f',
+    messagingSenderId: '212050889502',
+    projectId: 'shop-local-b69a3',
+    storageBucket: 'shop-local-b69a3.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyC5gJv-S58NJ5tr2UJHgNGOXrnORLsrTbU',
-    appId: '1:431763454927:ios:42d6774355dc3744b170ba',
-    messagingSenderId: '431763454927',
-    projectId: 'shoplocal-299a6',
-    storageBucket: 'shoplocal-299a6.firebasestorage.app',
+    apiKey: 'AIzaSyBY6O2lxv8Uy_o0k-_ZvqL4LTB0MCveiNM',
+    appId: '1:212050889502:ios:860e0cf5519f0bd1ce570f',
+    messagingSenderId: '212050889502',
+    projectId: 'shop-local-b69a3',
+    storageBucket: 'shop-local-b69a3.firebasestorage.app',
+    iosClientId: '212050889502-qpv3pf411veqfp2ni6g17raiiaktfdt0.apps.googleusercontent.com',
     iosBundleId: 'com.example.shopLocal',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyC5gJv-S58NJ5tr2UJHgNGOXrnORLsrTbU',
-    appId: '1:431763454927:ios:42d6774355dc3744b170ba',
-    messagingSenderId: '431763454927',
-    projectId: 'shoplocal-299a6',
-    storageBucket: 'shoplocal-299a6.firebasestorage.app',
+    apiKey: 'AIzaSyBY6O2lxv8Uy_o0k-_ZvqL4LTB0MCveiNM',
+    appId: '1:212050889502:ios:860e0cf5519f0bd1ce570f',
+    messagingSenderId: '212050889502',
+    projectId: 'shop-local-b69a3',
+    storageBucket: 'shop-local-b69a3.firebasestorage.app',
+    iosClientId: '212050889502-qpv3pf411veqfp2ni6g17raiiaktfdt0.apps.googleusercontent.com',
     iosBundleId: 'com.example.shopLocal',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDKnkoIrJtqhh6rC5p8dNwraiqMa9ubFqU',
-    appId: '1:431763454927:web:11514245064df420b170ba',
-    messagingSenderId: '431763454927',
-    projectId: 'shoplocal-299a6',
-    authDomain: 'shoplocal-299a6.firebaseapp.com',
-    storageBucket: 'shoplocal-299a6.firebasestorage.app',
+    apiKey: 'AIzaSyCz4eg1YLa-juqMrbim4B8jBIK13Ircack',
+    appId: '1:212050889502:web:2f5cd8c07f9e75c3ce570f',
+    messagingSenderId: '212050889502',
+    projectId: 'shop-local-b69a3',
+    authDomain: 'shop-local-b69a3.firebaseapp.com',
+    storageBucket: 'shop-local-b69a3.firebasestorage.app',
   );
+
 }
