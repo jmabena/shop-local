@@ -3,6 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:provider/provider.dart';
+
+import '../controller/news_controller.dart';
+import 'news_screen.dart';
 
 class BusinessDirectoryPage extends StatefulWidget {
   @override
@@ -168,6 +172,20 @@ class _BusinessDirectoryPageState extends State<BusinessDirectoryPage> {
               ),
             ],
           ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChangeNotifierProvider<NewsController>(
+                    create: (context) => NewsController(),
+                    child: NewsPage(),
+                  ),
+                ),
+              );
+            },
+            child: Text('News'),
+          )
         ],
       ),
     );
