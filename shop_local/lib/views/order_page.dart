@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:shop_local/model/product_model.dart';
 
-class OrderPage extends StatelessWidget {
+import '../controller/user_controller.dart';
+
+class OrderPage extends StatefulWidget {
+
   const OrderPage({super.key});
 
+  @override
+  State<OrderPage> createState() => _OrderPageState();
+}
+
+class _OrderPageState extends State<OrderPage> {
+  final userController = UserController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,44 +29,48 @@ class OrderPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            buildOrderDetails(),
-            SizedBox(height: 20),
+            Expanded( // Wrap the ListView in Expanded to give it a bounded height
+              child: StreamBuilder(
+                stream: userController.getCartEntries(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text("Error: ${snapshot.error}"));
+                  }
+                  if (snapshot.hasData && snapshot.data != null) {
+                    return ListView.builder(
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (context, index) {
+                        final item = snapshot.data![index];
+                        return ListTile(
+                          title: Text(item['product'].productName),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Price: \$${item['product'].productPrice}'),
+                              Text('Quantity: ${item['count']}'),
+                            ],
+                          ),
+                          trailing: Text('\$${item['product'].productPrice * item['count']}'),
+                        );
+                      },
+                    );
+                  } else {
+                    // If no items are in the cart, show a message.
+                    return const Center(child: Text("No items in cart."));
+                  }
+                },
+              ),
+            ),
+            SizedBox(height: 50),
             buildPaymentMethod(),
             SizedBox(height: 20),
-            buildTotalAmount(),
-            Spacer(),
             buildConfirmButton(context),
           ],
         ),
       ),
-    );
-  }
-
-  Widget buildOrderDetails() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("Items Ordered", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        SizedBox(height: 10),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          itemCount: 3,
-          itemBuilder: (context, index) {
-            return ListTile(
-              leading: Image.asset(
-                'assets/fruits.jpg',
-                width: 50,
-                height: 50,
-                fit: BoxFit.cover,
-              ),
-              title: Text("Item Name"),
-              subtitle: Text("Quantity: 1"),
-              trailing: Text("\$10.00"),
-            );
-          },
-        ),
-      ],
     );
   }
 
@@ -84,12 +98,12 @@ class OrderPage extends StatelessWidget {
     );
   }
 
-  Widget buildTotalAmount() {
+  Widget buildTotalAmount(Map<String, dynamic> item) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text("Total Amount", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        Text("\$30.00", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        Text("\$${item['product'].productPrice * item['count']}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
       ],
     );
   }
@@ -107,6 +121,7 @@ class OrderPage extends StatelessWidget {
                 actions: [
                   TextButton(
                     onPressed: () {
+                      userController.deleteAllCartEntries();
                       Navigator.pop(context);
                     },
                     child: Text("OK"),

@@ -1,9 +1,13 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:shop_local/views/order_page.dart';
+import 'package:shop_local/model/product_model.dart';
+
+import '../controller/user_controller.dart';
+import 'order_page.dart';
 
 class ProductPage extends StatefulWidget {
-  final String productName;
-  const ProductPage({super.key, required this.productName});
+  final ProductModel productData;
+  const ProductPage({super.key, required this.productData});
 
   @override
   State<ProductPage> createState() => _ProductPageState();
@@ -11,6 +15,7 @@ class ProductPage extends StatefulWidget {
 }
 
 class _ProductPageState extends State<ProductPage> {
+   final UserController userController = UserController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,17 +23,25 @@ class _ProductPageState extends State<ProductPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 10,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.shopping_cart),
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => OrderPage()));
+            },
+          ),
+        ],
       ),
       body: Container(
         padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
         child: ListView(
           children: [
-            buildProductImage(widget.productName),
+            buildProductImage(widget.productData),
             SizedBox(height: 10),
-            buildDescriptionBox(widget.productName),
+            buildDescriptionBox(widget.productData),
             SizedBox(height: 10),
-            buildSection("Frequently bought together"),
-            buildFrequentlyBoughtGrid(),
+            //buildSection("Frequently bought together"),
+            //buildFrequentlyBoughtGrid(),
             SizedBox(height: 20),
             buildOrderButton(),
           ],
@@ -37,24 +50,30 @@ class _ProductPageState extends State<ProductPage> {
     );
   }
 
-  Widget buildProductImage(String productName) {
+  Widget buildProductImage(ProductModel product) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
         image: DecorationImage(
-          image: AssetImage('assets/$productName.jpg'),
+          image: AssetImage('assets/berries.jpg'),
           fit: BoxFit.cover,
         ),
       ),
       height: 200,
       width: 100,
+      child: Center(
+        child: Text(
+          product.productName,
+          style: TextStyle(fontSize: 36, color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ),
     );
   }
 
-  Widget buildDescriptionBox(String productName) {
+  Widget buildDescriptionBox(ProductModel product) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.0),
-      child: Text("$productName, nature's little bursts of joy, bring a symphony of flavours to your palate. With their bright red hue and luscious texture, they offer a refreshing and delightful treat"),
+      child: Text(product.productDesc),
     );
 
   }
@@ -117,11 +136,35 @@ class _ProductPageState extends State<ProductPage> {
   Widget buildOrderButton() {
     return Center(
       child: ElevatedButton(
-        onPressed: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => OrderPage())
-          );
+        onPressed: () async {
+          try {
+            final currentUser = FirebaseAuth.instance.currentUser;
+            String sellerId = widget.productData.sellerId;
+            if (currentUser == null) {
+              // Handle user not logged in
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("You must be logged in to place an order.")),
+              );
+              return;
+            }
+
+            if (currentUser.uid == sellerId) {
+              // Show error if the user is the seller
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Sellers cannot purchase their own products.")),
+              );
+              return;
+            }
+            // Call the controller method to add the product to the cart.
+            await userController.addToCart(widget.productData);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Product added to cart successfully!"), duration: Duration(seconds: 1)),
+            );
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Error adding to cart: $e")),
+            );
+          }
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.black,

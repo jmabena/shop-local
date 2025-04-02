@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:shop_local/model/seller_model.dart';
 import 'package:shop_local/views/seller_page.dart';
 
 class AllStoresSection extends StatelessWidget {
-  final List<String> imageUrls = [
-    "assets/bg.jpg",
-    "assets/berries.jpg",
-    "assets/bg.jpg",
-    "assets/berries.jpg", // Added more for testing
-  ];
+  final List<SellerModel> seller;
 
-  AllStoresSection({super.key});
+  const AllStoresSection({super.key, required this.seller});
 
   @override
   Widget build(BuildContext context) {
@@ -29,14 +25,15 @@ class AllStoresSection extends StatelessWidget {
         ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: imageUrls.length,
+          itemCount: seller.length,
           itemBuilder: (context, index) {
+            var sellerData = seller[index];
             return GestureDetector(
               onTap: () {
                 Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => SellerPage(url: imageUrls[index],)));
+                    builder: (context) => SellerPage(sellerData: sellerData,)));
               },
-              child: _buildStoreItem(imageUrls[index]),
+              child: _buildStoreItem(sellerData),
             );
           },
         ),
@@ -44,7 +41,7 @@ class AllStoresSection extends StatelessWidget {
     );
   }
 
-  Widget _buildStoreItem(String imageUrl) {
+  Widget _buildStoreItem(SellerModel data) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       elevation: 4,
@@ -58,7 +55,7 @@ class AllStoresSection extends StatelessWidget {
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
             child: Image.asset(
-              imageUrl,
+              'assets/fruits.jpg', // Placeholder image
               height: 180, // Fixed image height
               fit: BoxFit.cover,
             ),
@@ -68,31 +65,17 @@ class AllStoresSection extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "Store Name",
+                 Text(
+                  data.organizationName,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  "Store Description",
+                 Text(
+                  data.organizationDesc,
                   style: TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Icon(Icons.star, color: Colors.amber, size: 20),
-                    const SizedBox(width: 4),
-                    Text(
-                      "4.5 (150 reviews)",
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),

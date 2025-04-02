@@ -3,8 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shop_local/controller/user_controller.dart';
 import 'dart:io';
-
 import 'package:shop_local/model/user_model.dart';
+import 'package:shop_local/views/seller_profile.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -15,44 +15,42 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   File? _selectedImage;
-  late bool _isBuyer;
   final ImagePicker _picker = ImagePicker();
   final _formKey = GlobalKey<FormState>();
   String? photoUrl;
-  String? id;
-  late String accountType;
   final address = TextEditingController();
   final city = TextEditingController();
   final postalCode = TextEditingController();
   final organizationName = TextEditingController();
-  final organizationDescription = TextEditingController();
-  final organizationType = TextEditingController();
   final licenseNumber = TextEditingController();
-  final DateTime createdAt = DateTime.now();
-  final DateTime updatedAt = DateTime.now();
+
   final UserController userController = UserController();
 
   @override
-  void initState() {
-    super.initState();
-    _isBuyer = true;
+  void dispose() {
+    // Dispose controllers
+    address.dispose();
+    city.dispose();
+    postalCode.dispose();
+    organizationName.dispose();
+    licenseNumber.dispose();
+    super.dispose();
   }
 
   Future<void> _pickImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       setState(() {
-        _selectedImage =  File(image.path);
+        _selectedImage = File(image.path);
       });
     }
   }
 
   void _showAccountTypeDialog(bool isBuyer) {
-    accountType = isBuyer ? 'buyer' : 'seller';
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, setState) {
+        builder: (context, setStateDialog) {
           return AlertDialog(
             title: Text(isBuyer ? 'Buyer Details' : 'Seller Details'),
             content: SingleChildScrollView(
@@ -62,17 +60,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // Common Fields
-                    _buildImagePicker(setState),
+                    _buildImagePicker(setStateDialog),
                     _buildTextField('Address', Icons.location_on, address),
                     _buildTextField('City', Icons.location_city, city),
                     _buildTextField('Postal Code', Icons.markunread_mailbox, postalCode),
-
                     // Seller-specific Fields
                     if (!isBuyer) ...[
-                      _buildTextField('Organization Name', Icons.business, organizationName),
-                      _buildTextField('Organization Description',
-                          Icons.description, organizationDescription, maxLines: 3),
-                      _buildTextField('Organization Type', Icons.category, organizationType),
                       _buildTextField('License Number', Icons.assignment, licenseNumber),
                     ],
                   ],
@@ -87,12 +80,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    // Handle form submission
                     Navigator.pop(context);
                     _saveUser(isBuyer);
                   }
                 },
-                child: Text('Submit'),
+                child: const Text('Submit'),
               ),
             ],
           );
@@ -101,7 +93,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildTextField( String label, IconData icon, TextEditingController controller,
+  Widget _buildTextField(String label, IconData icon, TextEditingController controller,
       {int maxLines = 1, TextInputType keyboardType = TextInputType.text}) {
     return TextFormField(
       controller: controller,
@@ -115,23 +107,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildImagePicker(StateSetter setState) {
+  Widget _buildImagePicker(StateSetter setStateDialog) {
     return Column(
       children: [
         CircleAvatar(
           radius: 40,
-          backgroundImage: _selectedImage != null
-              ? FileImage(_selectedImage!)
-              : null,
-          child: _selectedImage == null
-              ? Icon(Icons.camera_alt, size: 40)
-              : null,
+          backgroundImage: _selectedImage != null ? FileImage(_selectedImage!) : null,
+          child: _selectedImage == null ? const Icon(Icons.camera_alt, size: 40) : null,
         ),
         TextButton(
           onPressed: _pickImage,
-          child: Text(_selectedImage == null
-              ? 'Add Profile Image'
-              : 'Change Image'),
+          child: Text(_selectedImage == null ? 'Add Profile Image' : 'Change Image'),
         ),
       ],
     );
@@ -141,7 +127,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('${isBuyer ? 'Buyer' : 'Seller'} profile created successfully!'),
-        duration: Duration(seconds: 2),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -150,27 +136,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
     address.clear();
     city.clear();
     postalCode.clear();
-    organizationName.clear();
-    organizationDescription.clear();
-    organizationType.clear();
     licenseNumber.clear();
     setState(() => _selectedImage = null);
     _formKey.currentState?.reset();
   }
 
-  void _saveUser(bool isBuyer) async{
+  void _deleteAccount(UserModel userData) async{
+    try{
+      if (userData.accountType == 'seller') {
+        await userController.deleteSellerInfo(userData.id!);
+        await userController.deleteSellerProducts(userData.id!);
+      }
+      await userController.deleteUser(userData.id!);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Account deleted successfully'),
+        ),
+      );
+    } catch (e){
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+        ),
+      );
+    }
+  }
+  void _saveUser(bool isBuyer) async {
     final user = FirebaseAuth.instance.currentUser!;
     String? imageUrl;
 
-    // Upload image if selected
-    /* if (_selectedImage != null) {
+    /*
+    if (_selectedImage != null) {
       final ref = FirebaseStorage.instance
           .ref()
           .child('user_images')
           .child('${user.uid}.jpg');
       await ref.putFile(_selectedImage!);
       imageUrl = await ref.getDownloadURL();
-    }*/
+    }
+    */
 
     final userModel = UserModel(
       id: user.uid,
@@ -178,20 +182,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       address: address.text,
       city: city.text,
       postalCode: postalCode.text,
-      organizationName: isBuyer ? null : organizationName.text,
-      organizationDescription: isBuyer ? null : organizationDescription.text,
-      organizationType: isBuyer ? null : organizationType.text,
       licenseNumber: isBuyer ? null : licenseNumber.text,
       photoUrl: imageUrl,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
     );
-    try{
+
+    try {
       await userController.saveUser(userModel);
       _showSuccessMessage(isBuyer);
       _resetForm();
-      Navigator.pop(context);
-    } catch(e) {
+      setState(() {}); // trigger a rebuild to update the UI
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString()),
@@ -202,52 +202,112 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-
+    final firebaseUser = FirebaseAuth.instance.currentUser;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
       ),
-      body: user == null
-          ? Center(child: Text('Please sign in'))
-          : Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            CircleAvatar(
-              radius: 60,
-              backgroundImage: user.photoURL != null
-                  ? NetworkImage(user.photoURL!)
-                  : null,
-              child: user.photoURL == null
-                  ? Icon(Icons.person, size: 60)
-                  : null,
-            ),
-            SizedBox(height: 20),
-            Text(user.email ?? 'No email provided',
-                style: Theme.of(context).textTheme.titleLarge),
-            SizedBox(height: 40),
-            Text('Select Account Type',
-                style: Theme.of(context).textTheme.headlineSmall),
-            SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _AccountTypeButton(
-                  icon: Icons.shopping_cart,
-                  label: 'Buyer',
-                  onPressed: () => _showAccountTypeDialog(_isBuyer),
+      body: firebaseUser == null
+          ? const Center(child: Text('Please sign in'))
+          : StreamBuilder<UserModel>(
+        stream: userController.getCurrentUser(),
+        builder: (context, snapshot) {
+          // If data exists, assume the profile has been created
+          if (snapshot.hasData) {
+            UserModel userData = snapshot.data!;
+            return Padding(
+              padding: const EdgeInsets.all(20),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 60,
+                      backgroundImage: userData.photoUrl != null
+                          ? NetworkImage(userData.photoUrl!)
+                          : null,
+                      child: userData.photoUrl == null
+                          ? const Icon(Icons.person, size: 60)
+                          : null,
+                    ),
+                    const SizedBox(height: 20),
+                    Text(firebaseUser.email ?? 'No email provided',
+                        style: Theme.of(context).textTheme.titleLarge),
+                    const SizedBox(height: 40),
+
+                    // Display the user profile information
+                    if (userData.accountType == 'seller')
+                      SellerProfileScreen(user: userData,),
+
+                    Text('Mailing address', style: TextStyle(fontSize: 18),),
+                    ListTile(
+                      leading: const Icon(Icons.location_on),
+                      title: const Text('Address'),
+                      subtitle: Text(userData.address),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.location_city),
+                      title: const Text('City'),
+                      subtitle: Text(userData.city),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.markunread_mailbox),
+                      title: const Text('Postal Code'),
+                      subtitle: Text(userData.postalCode),
+                    ),
+                    ElevatedButton(
+                        onPressed: () => _deleteAccount(userData),
+                        child: Text(
+                          "Delete Account",
+                        ),
+                    ),
+
+                  ],
                 ),
-                _AccountTypeButton(
-                  icon: Icons.store,
-                  label: 'Seller',
-                  onPressed: () => _showAccountTypeDialog(!_isBuyer),
-                ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            );
+          } else {
+            // Profile not created yet, show account type selection buttons
+            return Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 60,
+                    backgroundImage: firebaseUser.photoURL != null
+                        ? NetworkImage(firebaseUser.photoURL!)
+                        : null,
+                    child: firebaseUser.photoURL == null
+                        ? const Icon(Icons.person, size: 60)
+                        : null,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(firebaseUser.email ?? 'No email provided',
+                      style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 40),
+                  const Text('Select Account Type',
+                      style: TextStyle(fontSize: 24)),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _AccountTypeButton(
+                        icon: Icons.shopping_cart,
+                        label: 'Buyer',
+                        onPressed: () => _showAccountTypeDialog(true),
+                      ),
+                      _AccountTypeButton(
+                        icon: Icons.store,
+                        label: 'Seller',
+                        onPressed: () => _showAccountTypeDialog(false),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }
+        },
       ),
     );
   }
@@ -262,16 +322,16 @@ class _AccountTypeButton extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onPressed,
-  });
+    });
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton.icon(
       icon: Icon(icon, size: 30),
-      label: Text(label, style: TextStyle(fontSize: 18)),
+      label: Text(label, style: const TextStyle(fontSize: 18)),
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        padding: EdgeInsets.symmetric(vertical: 20, horizontal: 25),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 25),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),

@@ -1,9 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../controller/user_controller.dart';
+import '../model/seller_model.dart';
+import '../model/user_model.dart';
+import 'FilterMenu.dart';
+import 'order_page.dart';
 import 'profile_page.dart';
 import 'all_stores_section.dart';
-import 'FilterMenu.dart';
-import 'top_rates_section.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -17,10 +20,10 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  int _selectedIndex = 0;
   bool _isDarkMode = false;
-  final List<String> _allItems = ["Item 1", "Item 2", "Item 3", "Item 4"];
   List<String> _filteredItems = [];
+  int _selectedIndex = 0;
+  final UserController userController = UserController();
 
   final List<String> menuItems = ["Food", "Clothing", "School Supplies", "Wine"];
 
@@ -32,33 +35,33 @@ class _HomePageState extends State<HomePage> {
     widget.onThemeChanged(_isDarkMode);
   }
 
-
-
-  @override
-  void initState() {
-    super.initState();
-    _filteredItems = List.from(_allItems);
-  }
-
   void _filterItems(int index) {
     setState(() {
       _selectedIndex = index;
       if (index == 0) {
-        _filteredItems = List.from(_allItems);
+        _filteredItems = List.from(_filteredItems);
       } else {
-        _filteredItems = _allItems.where((item) => item.contains("$index")).toList();
+        _filteredItems = _filteredItems.where((item) => item.contains("$index")).toList();
       }
     });
   }
 
-
-
-
+  Widget _buildSellerInfoBanner(List<SellerModel> seller) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        //TopRatesSection(seller: seller),
+        const SizedBox(height: 20),
+        AllStoresSection(seller: seller),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final firebaseUser = FirebaseAuth.instance.currentUser;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: _isDarkMode ? Colors.black : Colors.white,
       key: _scaffoldKey,
       drawer: Drawer(
         child: ListView(
@@ -68,30 +71,45 @@ class _HomePageState extends State<HomePage> {
               decoration: const BoxDecoration(
                 color: Colors.blue,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
+              child: StreamBuilder<UserModel>(
+                stream: userController.getCurrentUser(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: CircleAvatar(radius: 40,child:Icon(Icons.person, size: 60)));
+                  }
+                  // If the document doesn't exist or data is null:
+                  if (!snapshot.hasData || snapshot.data == null) {
+                    return const Center(child: Text("User profile not found"));
+                  }
+                  UserModel userData = snapshot.data!;
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircleAvatar(
+                        radius: 40,
+                        backgroundImage: userData.photoUrl != null
+                            ? NetworkImage(userData.photoUrl!)
+                            : null,
+                        child: userData.photoUrl == null
+                            ? const Icon(Icons.person, size: 60)
+                            : null,
+                      ),
 
-                    ),
-                    child: Icon(Icons.person, size: 60, color: Colors.white,)
-                  ),
-
-                  const SizedBox(height: 5),
-                  const Text(
-                    'Arshia',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+                      const SizedBox(height: 5),
+                      Text(
+                        firebaseUser?.email ?? '',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
             ListTile(
@@ -146,6 +164,12 @@ class _HomePageState extends State<HomePage> {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.shopping_cart),
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => OrderPage()));
+            },
+          ),
+          IconButton(
             icon: Icon(_isDarkMode ? Icons.dark_mode : Icons.light_mode),
             onPressed: _toggleTheme,
           ),
@@ -160,12 +184,23 @@ class _HomePageState extends State<HomePage> {
               onItemSelected: _filterItems,
               items: menuItems,
             ),
-            const SizedBox(height: 20),
-            // Constrain horizontal lists with fixed height
-            // Adjust based on your needs
-            TopRatesSection(),
-            const SizedBox(height: 20),
-            AllStoresSection()
+            // Add Stream Builder for seller info
+            StreamBuilder(
+              stream: userController.getAllSellersStream(),
+              builder: (context, sellerSnapshot) {
+                if (sellerSnapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (sellerSnapshot.hasError) {
+                  return Center(child: Text("Error: ${sellerSnapshot.error}"));
+                }
+                if (!sellerSnapshot.hasData) {
+                  return const SizedBox.shrink();
+                }
+                final seller = sellerSnapshot.data!;
+                return _buildSellerInfoBanner(seller);
+              },
+            ),
           ],
         ),
       ),

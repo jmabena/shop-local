@@ -47,10 +47,7 @@ class TopRatesSection extends StatelessWidget {
                     width: MediaQuery.of(context).size.width,
                     margin: const EdgeInsets.symmetric(horizontal: 5),
                     child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(context, MaterialPageRoute(
-                            builder: (context) => SellerPage(url: url,)));
-                      },
+                      onTap: () {},
                       child: _buildImageItem(url),
                     ),
                   );
