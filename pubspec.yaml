@@ -42,6 +42,7 @@ dependencies:
   geolocator: ^13.0.3
   flutter_svg: ^2.0.17
   flutter_launcher_icons: ^0.14.3
+  carousel_slider: ^5.0.0
 
 dev_dependencies:
   flutter_test:
@@ -76,6 +77,11 @@ flutter:
   assets:
     - assets/images/logo.svg
     - assets/images/google_icon.svg
+    - assets/images/defaultUserImage.png
+    - assets/images/one.png
+    - assets/images/stories01.png
+    - assets/images/stories02.png
+    - assets/images/Two.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
