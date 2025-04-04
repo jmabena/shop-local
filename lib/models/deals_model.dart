@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Deal {
-  final String id;
+  String? id;
   final String title;
   final String? storeName;
   final String? storeImage;
@@ -10,9 +10,11 @@ class Deal {
   final String? condition;
   final bool isStoreWide;
   final DateTime expiryDate;
+  final String? productId;
+  final String? storeId;
 
   Deal({
-    required this.id,
+    this.id,
     required this.title,
     this.storeName,
     this.storeImage,
@@ -21,7 +23,24 @@ class Deal {
     this.condition,
     required this.isStoreWide,
     required this.expiryDate,
+    this.productId,
+    this.storeId,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'title': title,
+      'storeName': storeName,
+      'storeImage': storeImage,
+      'productImage': productImage,
+      'discountPercentage': discountPercentage,
+      'condition': condition,
+      'isStoreWide': isStoreWide,
+      'expiryDate': expiryDate,
+      'productId': productId,
+      'storeId': storeId,
+    };
+  }
 
   factory Deal.fromMap(Map<String, dynamic> data, String documentId) {
     return Deal(
@@ -34,6 +53,9 @@ class Deal {
       condition: data['condition'],
       isStoreWide: data['isStoreWide'] ?? false,
       expiryDate: (data['expiryDate'] as Timestamp).toDate(),
+      productId: data['productId'],
+      storeId: data['storeId'],
     );
   }
+
 }

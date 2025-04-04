@@ -9,6 +9,7 @@ class ProductModel {
   final double productPrice;
   final String productDesc;
   final String sellerId;
+  final bool hasDeal;
 
   ProductModel({
     this.productId,
@@ -17,7 +18,7 @@ class ProductModel {
     required this.productPrice,
     required this.productDesc,
     required this.sellerId,
-
+    this.hasDeal = false,
   });
 
   ProductModel copyWith({
@@ -27,6 +28,7 @@ class ProductModel {
     required double productPrice,
     required String productDesc,
     required String sellerId,
+    bool? hasDeal,
   }) {
     return ProductModel(
       productId: productId ?? this.productId,
@@ -35,29 +37,31 @@ class ProductModel {
       productPrice: productPrice,
       productDesc: productDesc,
       sellerId: sellerId,
+      hasDeal: hasDeal ?? this.hasDeal,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'productId': productId,
       'productUrl': productUrl,
       'productName': productName,
       'productPrice': productPrice,
       'productDesc': productDesc,
       'sellerId': sellerId,
+      'hasDeal': hasDeal,
     };
   }
 
   static ProductModel fromMap(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     return ProductModel(
-      productId: data['productId'],
+      productId: doc.id,
       productUrl: data['productUrl'] ?? '',
       productName: data['productName'],
       productPrice: data['productPrice'],
       productDesc: data['productDesc'],
       sellerId: data['sellerId'] ?? '',
+      hasDeal: data['hasDeal'] ?? false,
     );
   }
 }

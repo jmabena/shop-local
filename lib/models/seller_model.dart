@@ -1,40 +1,43 @@
 ///SELLER MODEL FROM ETOM
 class SellerModel {
-  final String sellerId;
+  String? sellerId;
   final String? logoUrl;
   final String? picUrl;
   final String organizationName;
   final String organizationType;
   final String organizationDesc;
+  bool? hasDeal = false;
 
   SellerModel({
-    required this.sellerId,
+    this.sellerId,
     required this.logoUrl,
     required this.picUrl,
     required this.organizationName,
     required this.organizationType,
     required this.organizationDesc,
+    this.hasDeal,
   });
 
   Map<String, dynamic> toMap() {
     return {
-      'sellerId': sellerId,
       'logoUrl': logoUrl,
       'picUrl': picUrl,
       'organizationName': organizationName,
       'organizationType': organizationType,
       'organizationDesc': organizationDesc,
+      'hasDeal': hasDeal,
     };
   }
 
-  factory SellerModel.fromMap(Map<String, dynamic> map) {
+  factory SellerModel.fromMap(Map<String, dynamic> map,String? sellerId) {
     return SellerModel(
-      sellerId: map['sellerId'],
+      sellerId: sellerId,
       logoUrl: map['logoUrl'],
       picUrl: map['picUrl'],
       organizationName: map['organizationName'],
       organizationType: map['organizationType'],
       organizationDesc: map['organizationDesc'],
+      hasDeal: map['hasDeal'] ?? false,
     );
   }
 

@@ -44,7 +44,7 @@ class UserController {
   Stream<SellerModel?> getSellerInfo(String userId) {
     return _firestore.collection('sellers').doc(userId).snapshots().map((doc) {
       if (doc.exists && doc.data() != null) {
-        return SellerModel.fromMap(doc.data()!);
+        return SellerModel.fromMap(doc.data()!,userId);
       }
       return null;
     });
@@ -60,7 +60,7 @@ class UserController {
 
   Stream<List<SellerModel>> getAllSellersStream() {
     return _firestore.collection('sellers').snapshots().map((querySnapshot) =>
-        querySnapshot.docs.map((doc) => SellerModel.fromMap(doc.data())).toList()
+        querySnapshot.docs.map((doc) => SellerModel.fromMap(doc.data(),doc.id)).toList()
     );
   }
 
@@ -97,7 +97,7 @@ class UserController {
     }
   }
 
-  Stream<List<ProductModel>> getSellerProducts(String userId) {
+  Stream<List<ProductModel>> getSellerProducts(String? userId) {
     return _firestore
         .collection('sellers')
         .doc(userId)

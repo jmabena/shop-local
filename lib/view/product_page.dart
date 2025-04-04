@@ -1,13 +1,17 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shop_local/view/network_image_builder.dart';
 
+import '../controller/deals_controller.dart';
 import '../controller/user_controller.dart';
+import '../models/deals_model.dart';
 import '../models/product_model.dart';
 import 'order_page.dart';
 
 class ProductPage extends StatefulWidget {
   final ProductModel productData;
-  const ProductPage({super.key, required this.productData});
+  final Deal? deal;
+  const ProductPage({super.key, required this.productData, this.deal});
 
   @override
   State<ProductPage> createState() => _ProductPageState();
@@ -16,6 +20,13 @@ class ProductPage extends StatefulWidget {
 
 class _ProductPageState extends State<ProductPage> {
    final UserController userController = UserController();
+   final DealsController dealsController = DealsController();
+
+   @override
+   void initState() {
+     super.initState();
+   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,7 +66,7 @@ class _ProductPageState extends State<ProductPage> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
         image: DecorationImage(
-          image: AssetImage('assets/berries.jpg'),
+          image: NetworkImageWithFallback(imageUrl: product.productUrl, fallbackAsset: 'assets/images/fruits.jpg'),
           fit: BoxFit.cover,
         ),
       ),
@@ -156,7 +167,25 @@ class _ProductPageState extends State<ProductPage> {
               return;
             }
             // Call the controller method to add the product to the cart.
-            await userController.addToCart(widget.productData);
+            double finalPrice = widget.productData.productPrice;
+            if (widget.deal != null && widget.deal?.discountPercentage != null) {
+              double? discount;
+              widget.deal?.discountPercentage != null ? discount = widget.deal?.discountPercentage : 0;
+              if (discount != null) {
+                finalPrice = widget.productData.productPrice - (widget.productData.productPrice * (discount / 100));
+              }
+            }
+            ProductModel product = ProductModel(
+              productId: widget.productData.productId,
+              productUrl: widget.productData.productUrl,
+              productName: widget.productData.productName,
+              productPrice: finalPrice,
+              productDesc: widget.productData.productDesc,
+              sellerId: widget.productData.sellerId,
+              hasDeal: widget.productData.hasDeal,
+
+            );
+            await userController.addToCart(product);
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text("Product added to cart successfully!"), duration: Duration(seconds: 1)),
             );

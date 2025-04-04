@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shop_local/view/seller_page.dart';
 
 import '../models/seller_model.dart';
+import 'network_image_builder.dart';
 
 class AllStoresSection extends StatelessWidget {
   final List<SellerModel> seller;
@@ -55,16 +56,16 @@ class AllStoresSection extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: data.logoUrl != null
-              ? Image.network(
-                data.logoUrl!,
-                fit: BoxFit.cover,
+            child: Container(
+                height: 150,
                 width: double.infinity,
-                height: 150,
-              )
-              : Container(
-                height: 150,
-                child: Text('No image ')),
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: NetworkImageWithFallback(imageUrl: data.logoUrl, fallbackAsset: 'assets/images/fruits.jpg'),
+                    fit: BoxFit.cover,
+                )
+            ),
+            ),
             ),
 
           Padding(
