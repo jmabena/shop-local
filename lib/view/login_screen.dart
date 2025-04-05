@@ -6,7 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'reset_password.dart';
 import 'signup_screen.dart';
-import 'directory_screen.dart';
+// import 'directory_screen.dart';
+import 'HomePage.dart';
 // import 'dart:io';
 
 
@@ -113,8 +114,11 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.of(context).pop(); // Close loading dialog
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => BusinessDirectoryPage()),
-      );
+        MaterialPageRoute(builder: (context) => HomePage(
+      onThemeChanged: (isDark) {
+        // Handle theme change if needed
+      },),
+      ));
 
     } catch (error) {
       Navigator.of(context).pop(); // Close loading dialog
