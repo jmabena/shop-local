@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../view/directory_screen.dart';// Screen for login/sign up
-import '../view/login_screen.dart';// Screen for diary log
+// import '../view/directory_screen.dart';// Screen for login/sign up
+// import '../view/login_screen.dart';// Screen for diary log
 import '../view/HomePage.dart';
+import '../view/introduction.dart';// Screen for introduction
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
@@ -22,7 +23,7 @@ class AuthGate extends StatelessWidget {
       },);
         }
         // If no user data is present, show the login screen
-        return const LoginScreen();
+        return  IntroductionScreen();
       },
     );
   }

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'directory_screen.dart'; // Adjust the import based on your project structure
+import 'package:shop_local/view/HomePage.dart';
+import 'HomePage.dart'; // Adjust the import based on your project structure
 
 
 class SignUpScreen extends StatefulWidget {
@@ -77,8 +78,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
         context,
         MaterialPageRoute(
           builder: (context) => _userTypeIndex == 0
-              ? BusinessDirectoryPage()
-              : BusinessDirectoryPage(),
+              ? HomePage(
+      onThemeChanged: (isDark) {
+        // Handle theme change if needed
+      },)
+              : HomePage(
+      onThemeChanged: (isDark) {
+        // Handle theme change if needed
+      },)
         ),
       );
 
@@ -160,7 +167,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       TabBar(
                         onTap: (index) => setState(() => _userTypeIndex = index),
                         indicator: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(10),
                           color: Theme.of(context).primaryColor,
                         ),
                         labelColor: Colors.white,
