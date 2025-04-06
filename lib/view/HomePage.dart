@@ -33,7 +33,19 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _logout() async {
+  try {
     await FirebaseAuth.instance.signOut();
+    // Navigate back to login screen
+    if (mounted) {
+      Navigator.pushReplacementNamed(context, '/login');
+    }
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Logout failed: ${e.toString()}')),
+      );
+    }
+  }
   }
 
 
