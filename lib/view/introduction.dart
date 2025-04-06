@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../view/login_screen.dart';
 
 class IntroductionScreen extends StatefulWidget {
   const IntroductionScreen({super.key});
@@ -117,7 +118,7 @@ class _IntroductionScreenState extends State<IntroductionScreen>
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.pushReplacementNamed(context, '/login');
+                      Navigator.push(context, MaterialPageRoute(builder: (context) =>  LoginScreen()));
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).primaryColor,

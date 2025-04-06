@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shop_local/controller/Authetication_Phase.dart';
-import 'package:shop_local/view/login_screen.dart';
-// import '../view/login_screen.dart';
+// import 'package:shop_local/view/login_screen.dart';
+import '../view/login_screen.dart';
 
 
 Future<void> main() async {
@@ -42,7 +42,11 @@ class ShopLocalApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.black),
       ),
       home: AuthGate(),
-      routes: { '/login': (context) => const LoginScreen()},
+      // routes: { '/login': (context) => const LoginScreen()},
+      routes: {
+    '/login': (context) => LoginScreen(),
+    // other routes...
+  },
     );
   }
 }
