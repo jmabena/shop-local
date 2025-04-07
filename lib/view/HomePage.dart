@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'AllStoresSection.dart';
 import 'FilterMenu.dart';
 import 'TopRatesSection.dart';
+import 'messageScreen.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -126,7 +127,7 @@ class _HomePageState extends State<HomePage> {
             ListTile(
               leading: const Icon(Icons.message),
               title: const Text('Messages'),
-              onTap: () {},
+              onTap: () {Navigator.push(context, MaterialPageRoute(builder: (context) =>  HomeScreen()));},
             ),
             ListTile(
               leading: const Icon(Icons.newspaper),
