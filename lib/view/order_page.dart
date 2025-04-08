@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../controller/user_controller.dart';
+import '../controller/cart_controller.dart';
 
 class OrderPage extends StatefulWidget {
 
@@ -11,7 +10,7 @@ class OrderPage extends StatefulWidget {
 }
 
 class _OrderPageState extends State<OrderPage> {
-  final userController = UserController();
+  final cartController = CartController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,7 +29,7 @@ class _OrderPageState extends State<OrderPage> {
           children: [
             Expanded( // Wrap the ListView in Expanded to give it a bounded height
               child: StreamBuilder(
-                stream: userController.getCartEntries(),
+                stream: cartController.getCartEntries(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
@@ -120,7 +119,7 @@ class _OrderPageState extends State<OrderPage> {
                 actions: [
                   TextButton(
                     onPressed: () {
-                      userController.deleteAllCartEntries();
+                      cartController.deleteAllCartEntries();
                       Navigator.pop(context);
                     },
                     child: Text("OK"),

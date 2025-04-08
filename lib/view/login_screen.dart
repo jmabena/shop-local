@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'reset_password.dart';
 import 'signup_screen.dart';
+import 'home_page.dart';
+
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,47 +23,9 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   final _formKey = GlobalKey<FormState>();
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  Future<void> _signIn() async {
-    if (!_formKey.currentState!.validate()) return;
-    
-    setState(() => _isLoading = true);
-    try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
-    } on FirebaseAuthException catch (e) {
-      _showErrorSnackbar("Sign In Error", e.message ?? 'Invalid credentials');
-    } catch (e) {
-      _showErrorSnackbar("Error", 'An unexpected error occurred');
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _signInWithGoogle() async {
-    setState(() => _isLoading = true);
-    try {
-      final googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) return;
-
-      final googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      await FirebaseAuth.instance.signInWithCredential(credential);
-    } on FirebaseAuthException catch (e) {
-      _showErrorSnackbar("Google Sign In Error", e.message ?? 'Error occurred');
-    } catch (e) {
-      _showErrorSnackbar("Error", 'Failed to sign in with Google');
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
+  // Add this method at the beginning of the class
   void _showErrorSnackbar(String title, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -77,6 +44,91 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  Future<void> _signIn() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+    } on FirebaseAuthException catch (e) {
+      _showErrorSnackbar("Sign In Error", e.message ?? 'Invalid credentials');
+    } catch (e) {
+      _showErrorSnackbar("Error", 'An unexpected error occurred');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+
+  Future<void> _signInWithGoogle() async {
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+
+      // Trigger the Google Sign-In flow
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        Navigator.of(context).pop(); // Close loading dialog
+        return; // User canceled the sign-in
+      }
+
+      // Obtain the auth details
+      final GoogleSignInAuthentication googleAuth =
+      await googleUser.authentication;
+
+      // Create a new credential
+      final OAuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // Sign in to Firebase with the credential
+      final UserCredential userCredential =
+      await FirebaseAuth.instance.signInWithCredential(credential);
+
+      // Check if this is a new user
+      if (userCredential.additionalUserInfo!.isNewUser) {
+        // Save user data to Firestore for new users
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .set({
+          'uid': userCredential.user!.uid,
+          'email': googleUser.email,
+          'name': googleUser.displayName,
+          'photoUrl': googleUser.photoUrl,
+          'createdAt': DateTime.now().toIso8601String(),
+          'userType': 'buyer', // Default user type
+        });
+      }
+
+      // Navigate to home screen
+      Navigator.of(context).pop(); // Close loading dialog
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage(
+            onThemeChanged: (isDark) {
+              // Handle theme change if needed
+            },),
+          ));
+
+    } catch (error) {
+      Navigator.of(context).pop(); // Close loading dialog
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error signing in with Google: ${error.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -210,13 +262,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : const Text(
-                            'Sign In',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                      'Sign In',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),

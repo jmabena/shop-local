@@ -34,6 +34,7 @@ class DummyDataGenerator {
         organizationType: 'Retail',
         organizationDesc: 'A great store for products.',
         hasDeal: false,
+        licenseNumber: '123456789$i',
       );
       await _firestore.collection('sellers').doc(sellerId).set(sellerData.toMap());
       // await _firestore.collection('sellers').doc(sellerId).set({

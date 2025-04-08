@@ -3,8 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:shop_local/controller/user_controller.dart';
 
+import '../controller/seller_controller.dart';
 import '../models/product_model.dart';
 import '../models/seller_model.dart';
 import '../models/user_model.dart';
@@ -21,12 +21,17 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
   final String userId = FirebaseAuth.instance.currentUser!.uid;
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final ImagePicker _picker = ImagePicker();
-  final UserController _userController = UserController();
+  final SellerController _sellerController = SellerController();
+  late String logoUrl;
+  late String pictureUrl;
+  late String productUrl;
+  final _formKey = GlobalKey<FormState>();
 
   // Controllers for additional seller info fields
   final TextEditingController _businessNameController = TextEditingController();
   final TextEditingController _businessTypeController = TextEditingController();
   final TextEditingController _businessDescriptionController = TextEditingController();
+  final TextEditingController _licenseNumberController = TextEditingController();
 
   // Controllers to add product details
   final TextEditingController _productPrice = TextEditingController();
@@ -43,6 +48,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
     _businessTypeController.dispose();
     _businessNameController.dispose();
     _businessDescriptionController.dispose();
+    _licenseNumberController.dispose();
     _productPrice.dispose();
     _productName.dispose();
     _productDesc.dispose();
@@ -84,55 +90,77 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
         return AlertDialog(
           title: const Text("Add Seller Information"),
           content: SingleChildScrollView(
-            child: Column(
-              children: [
-                // Business Logo Picker
-                Row(
-                  children: [
-                    // If a logo has been selected, show it; otherwise, show a placeholder icon.
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundImage: _businessLogo != null ? FileImage(_businessLogo!) : null,
-                      child: _businessLogo == null ? const Icon(Icons.image) : null,
-                    ),
-                    const SizedBox(width: 10),
-                    TextButton(
-                      onPressed: _pickBusinessLogo,
-                      child: const Text("Pick Logo"),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                // Business Picture Picker
-                Row(
-                  children: [
-                    TextButton(
-                      onPressed: _pickBusinessPicture,
-                      child: const Text("Pick Business Pic"),
-                    ),
-                    const SizedBox(width: 10),
-                    // Show a preview of the business picture if selected
-                    _businessPicture != null
-                        ? Container(
-                      height: 100,
-                      width: 100,
-                      decoration: BoxDecoration(
-                        image: DecorationImage(
-                          image: FileImage(_businessPicture!),
-                          fit: BoxFit.cover,
-                        ),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  // Business Logo Picker
+                  Row(
+                    children: [
+                      // If a logo has been selected, show it; otherwise, show a placeholder icon.
+                      CircleAvatar(
+                        radius: 30,
+                        backgroundImage: _businessLogo != null ? FileImage(_businessLogo!) : null,
+                        child: _businessLogo == null ? const Icon(Icons.image) : null,
                       ),
-                    )
-                        : const Icon(Icons.image, size: 50),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                // Business Type Field
-                _buildTextField('Name of Business', _businessNameController),
-                _buildTextField('Type of Business', _businessTypeController),
-                _buildTextField('Business Description', _businessDescriptionController),
-              ],
+                      const SizedBox(width: 10),
+                      TextButton(
+                        onPressed: _pickBusinessLogo,
+                        child: const Text("Pick Logo"),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  // Business Picture Picker
+                  Row(
+                    children: [
+                      TextButton(
+                        onPressed: _pickBusinessPicture,
+                        child: const Text("Pick Business Pic"),
+                      ),
+                      const SizedBox(width: 10),
+                      // Show a preview of the business picture if selected
+                      _businessPicture != null
+                          ? Container(
+                        height: 100,
+                        width: 100,
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: FileImage(_businessPicture!),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      )
+                          : const Icon(Icons.image, size: 50),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  // Business Type Field
+                  TextFormField(
+                    controller: _licenseNumberController,
+                    decoration: InputDecoration(
+                      labelText: 'License Number',
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'License number is required';
+                      }
+                      // Regular expression: must start with "CAN-" and then have exactly 7 digits
+                      final RegExp pattern = RegExp(r'^CAN-\d{7}$');
+                      if (!pattern.hasMatch(value)) {
+                        return 'Invalid format. Expected format: CAN-XXXXXXX (7 digits)';
+                      }
+                      return null;
+                    },
+                  ),
+
+                  _buildTextField('Name of Business', _businessNameController),
+                  _buildTextField('Type of Business', _businessTypeController),
+                  _buildTextField('Business Description', _businessDescriptionController),
+                ],
+              ),
             ),
+
           ),
           actions: [
             TextButton(
@@ -145,15 +173,10 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
             ElevatedButton(
               onPressed: () async {
                 // Validate that the required fields are not empty.
-                if (_businessNameController.text.isEmpty || _businessTypeController.text.isEmpty ||
-                    _businessDescriptionController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Please fill in all fields")),
-                  );
-                  return;
+                if (_formKey.currentState!.validate()){
+                  await _addSellerInformation();
+                  Navigator.pop(context);
                 }
-                await _addSellerInformation();
-                Navigator.pop(context);
               },
               child: const Text("Add"),
             ),
@@ -263,12 +286,9 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
 
   Future<void> _addProductInformation() async {
     try {
-      String? pictureUrl;
-
       if (_productImage != null) {
-        final ref = _storage.ref().child('images/${widget.user.id}/${DateTime
-            .now()
-            .millisecondsSinceEpoch}_$_productImage');
+        final ref = _storage.ref().child('products/${widget.user.id}/${DateTime.now()
+            .millisecondsSinceEpoch}.jpg');
         await ref.putFile(_productImage!);
         pictureUrl = await ref.getDownloadURL();
       }
@@ -280,7 +300,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
         productDesc: _productDesc.text,
         sellerId: widget.user.id!,
       );
-      await _userController.addSellerProduct(productInfo, userId);
+      await _sellerController.addSellerProduct(productInfo, userId);
       // Optionally clear the fields after successful addition:
       _productName.clear();
       _productPrice.clear();
@@ -301,10 +321,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
   /// Uploads images to Firebase Storage (if selected) and then saves the seller information
   Future<void> _addSellerInformation() async {
     try {
-      // Upload images if available
-      String? logoUrl;
-      String? pictureUrl;
-
+      // Initialize URLs
       if (_businessLogo != null) {
         final ref = _storage.ref().child('seller_logos').child('${widget.user.id}_logo.jpg');
         await ref.putFile(_businessLogo!);
@@ -321,25 +338,19 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
         sellerId: widget.user.id!,
         logoUrl: logoUrl,
         picUrl: pictureUrl,
+        licenseNumber: _licenseNumberController.text,
         organizationName: _businessNameController.text,
         organizationType: _businessTypeController.text,
         organizationDesc: _businessDescriptionController.text,
       );
 
-      await _userController.saveSellerInfo(sellerInfo);
+      await _sellerController.saveSellerInfo(sellerInfo);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Seller information added successfully")),
       );
 
-      // Optionally clear the fields after successful addition:
-      _businessNameController.clear();
-      _businessTypeController.clear();
-      _businessDescriptionController.clear();
-      setState(() {
-        _businessLogo = null;
-        _businessPicture = null;
-      });
+
 
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -355,12 +366,9 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Organization Info from the user model
-          Text("License Number: ${widget.user.licenseNumber}"),
-          const SizedBox(height: 20),
           // Conditionally display seller information if it exists.
           StreamBuilder<SellerModel?>(
-            stream: _userController.getSellerInfo(userId),
+            stream: _sellerController.getSellerInfo(userId),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -392,18 +400,10 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        /*
-        // Business Logo
-        CircleAvatar(
-          radius: 60,
-          backgroundImage: sellerInfo.logoUrl != null
-          ? NetworkImage(sellerInfo.logoUrl!) : null,
-        ),
-        const SizedBox(height: 20),
-        // Business Picture
-        Image.network(sellerInfo.picUrl != null ? sellerInfo.picUrl! : ''),
-        const SizedBox(height: 20),
-         */
+
+        // Business License Number
+        Text("License Number: ${sellerInfo.licenseNumber}"),
+        const SizedBox(height: 10),
         // Business Name
         Text("Business Name: ${sellerInfo.organizationName}"),
         const SizedBox(height: 10),

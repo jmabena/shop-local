@@ -43,7 +43,7 @@ class NetworkImageWithFallback extends ImageProvider<NetworkImageWithFallback> {
           },
         ),
       );
-    } else {
+    }else {
       _loadFallback(completer);
     }
 

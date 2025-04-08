@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../controller/user_controller.dart';
+import '../models/user_model.dart';
+import 'home_page.dart'; // Adjust the import based on your project structure
+
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -21,6 +26,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _obscureConfirmPassword = true;
   int _userTypeIndex = 0; // 0 = buyer, 1 = seller
 
+  final UserController userController = UserController();
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -34,28 +41,88 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      // Form is valid - proceed with sign up
-      final userData = {
-        'email': _emailController.text.trim(),
-        'password': _passwordController.text,
-        'userType': _userTypeIndex == 0 ? 'buyer' : 'seller',
-        'address': _addressController.text.trim(),
-        'city': _cityController.text.trim(),
-        'postalCode': _postalCodeController.text.trim(),
-        'createdAt': DateTime.now().toIso8601String(),
-      };
+      try {
+        // Show loading indicator
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(child: CircularProgressIndicator()),
+        );
 
-      // Here you would typically:
-      // 1. Call your authentication service
-      // 2. Save additional user data to Firestore/backend
-      // 3. Navigate to appropriate screen based on user type
+        // 1. Create user with Firebase Authentication
+        final credential = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Account created successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
+        // 2. Save additional user data to Firestore
+        final userData = UserModel(
+          id: credential.user!.uid,
+          photoUrl: '',
+          userType: _userTypeIndex == 0 ? 'buyer' : 'seller',
+          address: _addressController.text.trim(),
+          city: _cityController.text.trim(),
+          postalCode: _postalCodeController.text.trim(),
+          createdAt: DateTime.now().toIso8601String(),
+          updatedAt: DateTime.now().toIso8601String(),
+        );
+
+        await userController.saveUser(userData);
+
+        // 3. Navigate to appropriate screen based on user type
+        Navigator.of(context).pop(); // Remove loading dialog
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => HomePage(
+                onThemeChanged: (isDark) {
+                  // Handle theme change if needed
+                },)
+          ),
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account created successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } on FirebaseAuthException catch (e) {
+        Navigator.of(context).pop(); // Remove loading dialog
+
+        String errorMessage;
+        switch (e.code) {
+          case 'email-already-in-use':
+            errorMessage = 'This email is already registered.';
+            break;
+          case 'invalid-email':
+            errorMessage = 'Please enter a valid email address.';
+            break;
+          case 'weak-password':
+            errorMessage = 'Password should be at least 6 characters.';
+            break;
+          default:
+            errorMessage = 'Registration failed. Please try again.';
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } catch (e) {
+        Navigator.of(context).pop(); // Remove loading dialog
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('An unexpected error occurred: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -75,9 +142,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
             children: [
               // Logo
               SvgPicture.asset(
-                'assets/logo.svg',
-                height: 80,
-                color: Theme.of(context).primaryColor,
+                'assets/images/logo.svg',
+                height: 140,
+                // color: Theme.of(context).primaryColor,
               ),
               const SizedBox(height: 30),
 
@@ -94,7 +161,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       TabBar(
                         onTap: (index) => setState(() => _userTypeIndex = index),
                         indicator: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(10),
                           color: Theme.of(context).primaryColor,
                         ),
                         labelColor: Colors.white,

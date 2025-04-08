@@ -1,12 +1,15 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shop_local/view/network_image_builder_with_widget.dart';
 import '../controller/deals_controller.dart';
+import '../controller/seller_controller.dart';
 import '../controller/user_controller.dart';
 import '../models/seller_model.dart';
 import '../models/user_model.dart';
 import 'FilterMenu.dart';
 import 'deals_screen.dart';
+import 'network_image_builder.dart';
 import 'order_page.dart';
 import 'profile_page.dart';
 import 'all_stores_section.dart';
@@ -26,6 +29,9 @@ class _HomePageState extends State<HomePage> {
   bool _isDarkMode = false;
   List<String> _filteredItems = [];
   int _selectedIndex = 0;
+
+  // Setting up the controllers
+  final SellerController sellerController = SellerController();
   final UserController userController = UserController();
 
   final List<String> menuItems = ["Food", "Clothing", "School Supplies", "Wine"];
@@ -81,24 +87,25 @@ class _HomePageState extends State<HomePage> {
                     return const Center(child: CircularProgressIndicator());
                   }
                   if (snapshot.hasError) {
-                    return Center(child: CircleAvatar(radius: 40,child:Icon(Icons.person, size: 60)));
+                    return Center(child: Text("Error: ${snapshot.error}"));
                   }
                   // If the document doesn't exist or data is null:
                   if (!snapshot.hasData || snapshot.data == null) {
                     return const Center(child: Text("User profile not found"));
                   }
                   UserModel userData = snapshot.data!;
+                  print(userData);
                   return Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundImage: userData.photoUrl != null
-                            ? NetworkImage(userData.photoUrl!)
-                            : null,
-                        child: userData.photoUrl == null
-                            ? const Icon(Icons.person, size: 60)
-                            : null,
+                      ImageOrFallbackWidget(
+                        imageUrl: userData.photoUrl,
+                        fallbackAsset: null,
+                        fallbackWidget: const Icon(Icons.person, size: 60),
+                        builder: (imageProvider) => CircleAvatar(
+                          backgroundImage: imageProvider,
+                          radius: 40,
+                        ),
                       ),
 
                       const SizedBox(height: 5),
@@ -199,7 +206,7 @@ class _HomePageState extends State<HomePage> {
             ),
             // Add Stream Builder for seller info
             StreamBuilder(
-              stream: userController.getAllSellersStream(),
+              stream: sellerController.getAllSellersStream(),
               builder: (context, sellerSnapshot) {
                 if (sellerSnapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());

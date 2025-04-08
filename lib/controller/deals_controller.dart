@@ -28,7 +28,15 @@ class DealsController extends ChangeNotifier {
   }
 
 
-  Future<void> addDeal(Deal deal) async {
-    await _firestore.collection('deals').add(deal.toMap());
+  Future<void> addDeal(Deal deal,String? productId,String sellerId) async {
+    var dealData = await _firestore.collection('deals').add(deal.toMap());
+    await _firestore.collection('sellers').doc(sellerId).collection('deals').doc(dealData.id).set({
+      'isStoreWide' : deal.isStoreWide,
+      'expiryDate' : deal.expiryDate,
+    });
+    await _firestore.collection('sellers').doc(sellerId).update({'hasDeal': true});
+    if(productId != null){
+      await _firestore.collection('sellers').doc(sellerId).collection('products').doc(productId).update({'hasDeal': true});
+    }
   }
 }

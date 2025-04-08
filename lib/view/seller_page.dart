@@ -1,7 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shop_local/view/network_image_builder.dart';
 import 'package:shop_local/view/product_page.dart';
 import '../controller/deals_controller.dart';
+import '../controller/seller_controller.dart';
 import '../controller/user_controller.dart';
 import '../models/deals_model.dart';
 import '../models/product_model.dart';
@@ -20,6 +22,7 @@ class _SellerPageState extends State<SellerPage> {
   final  _searchController = TextEditingController();
   final userController = UserController();
   final dealsController = DealsController();
+  final sellerController = SellerController();
   String _query = '';
   List<Deal>? _deals;
   bool _isLoadingDeals = false;
@@ -67,6 +70,7 @@ class _SellerPageState extends State<SellerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final firebaseUser = FirebaseAuth.instance.currentUser;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -93,7 +97,7 @@ class _SellerPageState extends State<SellerPage> {
             ),
             SizedBox(height: 10),
             StreamBuilder(
-              stream: userController.getSellerProducts(widget.sellerData.sellerId),
+              stream: sellerController.getSellerProducts(widget.sellerData.sellerId),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -118,6 +122,13 @@ class _SellerPageState extends State<SellerPage> {
           ],
         ),
       ),
+      floatingActionButton: firebaseUser?.uid == widget.sellerData.sellerId ? FloatingActionButton(
+        onPressed: (){
+
+        },
+        backgroundColor: Colors.blue,
+        child: Icon(Icons.add),
+      ) : null,
     );
   }
 
@@ -182,7 +193,7 @@ class _SellerPageState extends State<SellerPage> {
                         ),
                       ) :
                       Text('${product.productPrice}', style: TextStyle(fontWeight: FontWeight.bold)),
-                      Text(product.productName),
+                      Text(product.productName,overflow: TextOverflow.ellipsis,),
                     ],
                   ),
                 ],

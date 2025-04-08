@@ -5,31 +5,34 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class UserModel {
   final String? id;
   final String? photoUrl;
-  final String accountType;
+  final String userType;
   final String address;
   final String city;
   final String postalCode;
-  final String? licenseNumber;
+  final String createdAt;
+  final String updatedAt;
 
   UserModel({
     this.id,
     this.photoUrl,
-    required this.accountType,
+    required this.userType,
     required this.address,
     required this.city,
     required this.postalCode,
-    this.licenseNumber,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'photoUrl': photoUrl,
-      'accountType': accountType,
+      'userType': userType,
       'address': address,
       'city': city,
       'postalCode': postalCode,
-      'licenseNumber': licenseNumber,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
     };
   }
 
@@ -38,11 +41,12 @@ class UserModel {
     return UserModel(
       id: data['id'] ?? '',
       photoUrl: data['photoUrl'] ?? '',
-      accountType: data['accountType'] ?? '',
+      userType: data['userType'] ?? '',
       address: data['address'] ?? '',
       city: data['city'] ?? '',
       postalCode: data['postalCode'] ?? '',
-      licenseNumber: data['licenseNumber'] ?? '',
+      createdAt: data['createdAt'] ?? '',
+      updatedAt: data['updatedAt'] ?? '',
     );
   }
 }

@@ -2,10 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shop_local/view/network_image_builder.dart';
 
+import '../controller/cart_controller.dart';
 import '../controller/deals_controller.dart';
 import '../controller/user_controller.dart';
 import '../models/deals_model.dart';
 import '../models/product_model.dart';
+import 'create_deal_page.dart';
 import 'order_page.dart';
 
 class ProductPage extends StatefulWidget {
@@ -20,6 +22,7 @@ class ProductPage extends StatefulWidget {
 
 class _ProductPageState extends State<ProductPage> {
    final UserController userController = UserController();
+   final CartController cartController = CartController();
    final DealsController dealsController = DealsController();
 
    @override
@@ -29,6 +32,7 @@ class _ProductPageState extends State<ProductPage> {
 
   @override
   Widget build(BuildContext context) {
+     final firebaserUser = FirebaseAuth.instance.currentUser;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -54,7 +58,7 @@ class _ProductPageState extends State<ProductPage> {
             //buildSection("Frequently bought together"),
             //buildFrequentlyBoughtGrid(),
             SizedBox(height: 20),
-            buildOrderButton(),
+            firebaserUser?.uid == widget.productData.sellerId ? buildCreateDealButton() : buildOrderButton(),
           ],
         ),
       ),
@@ -185,7 +189,7 @@ class _ProductPageState extends State<ProductPage> {
               hasDeal: widget.productData.hasDeal,
 
             );
-            await userController.addToCart(product);
+            await cartController.addToCart(product);
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text("Product added to cart successfully!"), duration: Duration(seconds: 1)),
             );
@@ -208,5 +212,32 @@ class _ProductPageState extends State<ProductPage> {
         ),
       ),
     );
+  }
+  buildCreateDealButton(){
+     return Center(
+       child: ElevatedButton(
+         onPressed: () async {
+           try {
+             await Navigator.push(context, MaterialPageRoute(builder: (context) => CreateDealPage(product: widget.productData)));
+           }catch(e){
+             ScaffoldMessenger.of(context).showSnackBar(
+               SnackBar(content: Text("Error creating deal: $e")),
+             );
+           }
+         },
+         style: ElevatedButton.styleFrom(
+           backgroundColor: Colors.black,
+           padding: EdgeInsets.symmetric(vertical: 15, horizontal: 50),
+           shape: RoundedRectangleBorder(
+             borderRadius: BorderRadius.circular(30),
+           ),
+         ),
+         child: Text(
+           "Create Deal",
+           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+         ),
+
+       )
+     );
   }
 }
