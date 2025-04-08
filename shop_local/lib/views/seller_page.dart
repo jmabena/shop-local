@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shop_local/model/seller_model.dart';
 import 'package:shop_local/views/product_page.dart';
+import '../controller/seller_controller.dart';
 import '../controller/user_controller.dart';
 import '../model/product_model.dart';
 import 'order_page.dart';
@@ -16,6 +17,7 @@ class SellerPage extends StatefulWidget {
 class _SellerPageState extends State<SellerPage> {
   final  _searchController = TextEditingController();
   final userController = UserController();
+  final sellerController = SellerController();
   String _query = '';
 
 
@@ -65,23 +67,21 @@ class _SellerPageState extends State<SellerPage> {
             ),
             SizedBox(height: 10),
             StreamBuilder(
-              stream: userController.getSellerProducts(widget.sellerData.sellerId),
+              stream: sellerController.getSellerProducts(widget.sellerData.sellerId),
               builder: (context, snapshot) {
+                final productInfo = snapshot.data ?? [];
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
                   return Center(child: Text("Error: ${snapshot.error}"));
                 }
-                if (snapshot.hasData && snapshot.data != null) {
-                  final productInfo = snapshot.data!;
-                  return _buildProductInfoSection(productInfo);
-                } else {
-                  // If no products are found, show a message.
+                if (!snapshot.hasData || productInfo.isEmpty) {
                   return Center(
                     child: Text('This seller has no products yet.'),
                   );
                 }
+                return _buildProductInfoSection(productInfo);
               },
             ),
           ],
@@ -120,7 +120,7 @@ class _SellerPageState extends State<SellerPage> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
                       image: DecorationImage(
-                        image: AssetImage('assets/berries.jpg'),
+                        image: NetworkImage(product.productUrl),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -151,7 +151,7 @@ class _SellerPageState extends State<SellerPage> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             image: DecorationImage(
-              image: AssetImage('assets/fruits.jpg'),
+              image: NetworkImage(widget.sellerData.picUrl),
               fit: BoxFit.cover,
             ),
           ),

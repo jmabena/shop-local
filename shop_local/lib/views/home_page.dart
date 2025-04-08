@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../controller/seller_controller.dart';
 import '../controller/user_controller.dart';
 import '../model/seller_model.dart';
 import '../model/user_model.dart';
@@ -23,6 +24,9 @@ class _HomePageState extends State<HomePage> {
   bool _isDarkMode = false;
   List<String> _filteredItems = [];
   int _selectedIndex = 0;
+
+  // Setting up the controllers
+  final SellerController sellerController = SellerController();
   final UserController userController = UserController();
 
   final List<String> menuItems = ["Food", "Clothing", "School Supplies", "Wine"];
@@ -78,7 +82,7 @@ class _HomePageState extends State<HomePage> {
                     return const Center(child: CircularProgressIndicator());
                   }
                   if (snapshot.hasError) {
-                    return Center(child: CircleAvatar(radius: 40,child:Icon(Icons.person, size: 60)));
+                    return Center(child: Text("Error: ${snapshot.error}"));
                   }
                   // If the document doesn't exist or data is null:
                   if (!snapshot.hasData || snapshot.data == null) {
@@ -90,10 +94,10 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       CircleAvatar(
                         radius: 40,
-                        backgroundImage: userData.photoUrl != null
+                        backgroundImage: userData.photoUrl != ''
                             ? NetworkImage(userData.photoUrl!)
                             : null,
-                        child: userData.photoUrl == null
+                        child: userData.photoUrl == ''
                             ? const Icon(Icons.person, size: 60)
                             : null,
                       ),
@@ -186,7 +190,7 @@ class _HomePageState extends State<HomePage> {
             ),
             // Add Stream Builder for seller info
             StreamBuilder(
-              stream: userController.getAllSellersStream(),
+              stream: sellerController.getAllSellersStream(),
               builder: (context, sellerSnapshot) {
                 if (sellerSnapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -207,3 +211,4 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+

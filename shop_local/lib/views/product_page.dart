@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shop_local/model/product_model.dart';
 
+import '../controller/cart_controller.dart';
 import '../controller/user_controller.dart';
 import 'order_page.dart';
 
@@ -16,6 +17,8 @@ class ProductPage extends StatefulWidget {
 
 class _ProductPageState extends State<ProductPage> {
    final UserController userController = UserController();
+   final CartController cartController = CartController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,7 +58,7 @@ class _ProductPageState extends State<ProductPage> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
         image: DecorationImage(
-          image: AssetImage('assets/berries.jpg'),
+          image: NetworkImage(product.productUrl),
           fit: BoxFit.cover,
         ),
       ),
@@ -156,7 +159,7 @@ class _ProductPageState extends State<ProductPage> {
               return;
             }
             // Call the controller method to add the product to the cart.
-            await userController.addToCart(widget.productData);
+            await cartController.addToCart(widget.productData);
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text("Product added to cart successfully!"), duration: Duration(seconds: 1)),
             );

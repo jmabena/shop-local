@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProductModel {
   final String? productId;
-  final String? productUrl;
+  final String productUrl;
   final String productName;
   final double productPrice;
   final String productDesc;
@@ -11,7 +11,7 @@ class ProductModel {
 
   ProductModel({
     this.productId,
-    this.productUrl,
+    required this.productUrl,
     required this.productName,
     required this.productPrice,
     required this.productDesc,
