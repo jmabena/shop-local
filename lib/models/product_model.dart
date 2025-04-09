@@ -52,10 +52,9 @@ class ProductModel {
     };
   }
 
-  static ProductModel fromMap(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+  static ProductModel fromMap(Map<String, dynamic> data, String documentId) {
     return ProductModel(
-      productId: doc.id,
+      productId: documentId,
       productUrl: data['productUrl'] ?? '',
       productName: data['productName'],
       productPrice: data['productPrice'],

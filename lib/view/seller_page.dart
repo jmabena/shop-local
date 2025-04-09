@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shop_local/view/network_image_builder.dart';
 import 'package:shop_local/view/product_page.dart';
 import '../controller/deals_controller.dart';
@@ -24,8 +25,8 @@ class _SellerPageState extends State<SellerPage> {
   final dealsController = DealsController();
   final sellerController = SellerController();
   String _query = '';
-  List<Deal>? _deals;
-  bool _isLoadingDeals = false;
+ // List<Deal>? _deals;
+  //bool _isLoadingDeals = false;
 
 
 
@@ -33,33 +34,16 @@ class _SellerPageState extends State<SellerPage> {
   void initState() {
     super.initState();
     // Listen for changes in the search field and update the query.
-    _getDeals();
+    //_getDeals();
+    context.read<DealsController>().fetchStoreDeals(widget.sellerData.sellerId);
+    context.read<SellerController>().fetchSellerProducts(widget.sellerData.sellerId);
     _searchController.addListener(() {
       setState(() {
         _query = _searchController.text;
       });
     });
   }
-  Future<void> _getDeals() async {
-    setState(() {
-      _isLoadingDeals = true;
-    });
-    _deals = await dealsController.getStoreDeals(widget.sellerData.sellerId);
-    setState(() {
-      _isLoadingDeals = false;
 
-    });
-  }
-
-  bool isProductInDeals(ProductModel product) {
-    if (_deals == null) return false;
-    return _deals!.any((deal) => deal.productId == product.productId);
-  }
-
-  Deal getDealForProduct(ProductModel product) {
-    if (_deals == null) throw Exception('Deals not loaded');
-    return _deals!.firstWhere((deal) => deal.productId == product.productId);
-  }
 
   @override
   void dispose() {
@@ -96,28 +80,17 @@ class _SellerPageState extends State<SellerPage> {
                 style: TextStyle(fontSize: 16),),
             ),
             SizedBox(height: 10),
-            StreamBuilder(
-              stream: sellerController.getSellerProducts(widget.sellerData.sellerId),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
+            Consumer2<DealsController, SellerController>(
+              builder: (context, dealsController, sellerController, child) {
+                if (dealsController.isLoading || sellerController.isLoading) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                if (snapshot.hasError) {
-                  return Center(child: Text("Error: ${snapshot.error}"));
+                if(sellerController.products.isEmpty){
+                  return const Center(child: Text("No products found"));
                 }
-                if(_isLoadingDeals){
-                  return Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasData && snapshot.data != null) {
-                  final productInfo = snapshot.data!;
-                  return _buildProductInfoSection(productInfo);
-                } else {
-                  // If no products are found, show a message.
-                  return Center(
-                    child: Text('This seller has no products yet.'),
-                  );
-                }
-              },
+                List<ProductModel> productInfo = sellerController.products;
+                return _buildProductInfoSection(productInfo,dealsController.deals);
+              }
             ),
           ],
         ),
@@ -132,7 +105,7 @@ class _SellerPageState extends State<SellerPage> {
     );
   }
 
-  Widget _buildProductInfoSection(List<ProductModel> productInfo) {
+  Widget _buildProductInfoSection(List<ProductModel> productInfo, List<Deal> deals) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -149,7 +122,7 @@ class _SellerPageState extends State<SellerPage> {
           itemCount: productInfo.length,
           itemBuilder: (context, index) {
             final product = productInfo[index];
-            Deal? deal = isProductInDeals(product) ? getDealForProduct(product) : null;
+            Deal? deal = deals.any((deal) => deal.productId == product.productId) ? deals.firstWhere((deal) => deal.productId == product.productId) : null;
             double finalPrice = product.productPrice;
             if (deal != null && deal.discountPercentage != null) {
               finalPrice = product.productPrice - (product.productPrice * (deal.discountPercentage! / 100));
@@ -159,6 +132,7 @@ class _SellerPageState extends State<SellerPage> {
               onTap: () {
                 Navigator.push(context, MaterialPageRoute(
                     builder: (context) => ProductPage(productData: product,deal: deal)));
+                setState(() {});
               },
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -179,7 +153,7 @@ class _SellerPageState extends State<SellerPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SizedBox(height: 5),
-                      isProductInDeals(product) ?RichText(
+                      deals.any((deal) => deal.productId == product.productId) ?RichText(
                         text: TextSpan(
                           children: <TextSpan>[
                             TextSpan(

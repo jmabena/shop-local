@@ -6,7 +6,8 @@ import 'package:intl/intl.dart';
 
 class CreateDealPage extends StatefulWidget {
   final ProductModel product;
-  const CreateDealPage({super.key, required this.product});
+  final String sellerId;
+  CreateDealPage({super.key, required this.product,required this.sellerId});
 
   @override
   _CreateDealPageState createState() => _CreateDealPageState();
@@ -35,6 +36,7 @@ class _CreateDealPageState extends State<CreateDealPage> {
       condition: _isStoreWide ? _conditionController.text : null,
       isStoreWide: _isStoreWide,
       expiryDate: _expiryDate,
+      storeId: widget.sellerId
     );
 
     _dealsController.addDeal(deal,widget.product.productId,widget.product.sellerId).then((_) {

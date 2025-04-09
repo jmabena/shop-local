@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shop_local/view/seller_page.dart';
 
+import '../controller/deals_controller.dart';
+import '../controller/seller_controller.dart';
 import '../models/seller_model.dart';
 import 'network_image_builder.dart';
 
@@ -33,7 +36,14 @@ class AllStoresSection extends StatelessWidget {
             return GestureDetector(
               onTap: () {
                 Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => SellerPage(sellerData: sellerData,)));
+                    builder: (context) => MultiProvider(
+                      providers: [
+                        ChangeNotifierProvider(create: (_) => DealsController()),
+                        ChangeNotifierProvider(create: (_) => SellerController()),
+                      ],
+                      child: SellerPage(sellerData: sellerData),
+                    ),
+                ));
               },
               child: _buildStoreItem(sellerData),
             );

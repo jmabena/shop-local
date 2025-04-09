@@ -31,7 +31,7 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
   // Setting up the controllers
-  final SellerController sellerController = SellerController();
+  //final SellerController sellerController = SellerController();
   final UserController userController = UserController();
 
   final List<String> menuItems = ["Food", "Clothing", "School Supplies", "Wine"];
@@ -149,8 +149,11 @@ class _HomePageState extends State<HomePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ChangeNotifierProvider<DealsController>(
-                      create: (context) => DealsController(),
+                    builder: (context) => MultiProvider(
+                      providers: [
+                        ChangeNotifierProvider(create: (_) => DealsController()),
+                        ChangeNotifierProvider(create: (_) => SellerController()),
+                      ],
                       child: DealsPage(),
                     ),
                   ),
@@ -195,34 +198,46 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            FilterMenu(
-              selectedIndex: _selectedIndex,
-              onItemSelected: _filterItems,
-              items: menuItems,
+      body: MultiProvider(
+        providers: [
+          //ChangeNotifierProvider(create: (_) => DealsController()),
+          ChangeNotifierProvider(create: (_) => SellerController()),
+        ],
+        builder: (context, child) {
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                FilterMenu(
+                  selectedIndex: _selectedIndex,
+                  onItemSelected: _filterItems,
+                  items: menuItems,
+                ),
+                // Add Stream Builder for seller info
+                StreamBuilder(
+                  stream: context
+                      .read<SellerController>()
+                      .getAllSellersStream(),
+                  builder: (context, sellerSnapshot) {
+                    if (sellerSnapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (sellerSnapshot.hasError) {
+                      return Center(child: Text("Error: ${sellerSnapshot
+                          .error}"));
+                    }
+                    if (!sellerSnapshot.hasData) {
+                      return const SizedBox.shrink();
+                    }
+                    final seller = sellerSnapshot.data!;
+                    return _buildSellerInfoBanner(seller);
+                  },
+                ),
+              ],
             ),
-            // Add Stream Builder for seller info
-            StreamBuilder(
-              stream: sellerController.getAllSellersStream(),
-              builder: (context, sellerSnapshot) {
-                if (sellerSnapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (sellerSnapshot.hasError) {
-                  return Center(child: Text("Error: ${sellerSnapshot.error}"));
-                }
-                if (!sellerSnapshot.hasData) {
-                  return const SizedBox.shrink();
-                }
-                final seller = sellerSnapshot.data!;
-                return _buildSellerInfoBanner(seller);
-              },
-            ),
-          ],
-        ),
+          );
+        }
       ),
     );
   }

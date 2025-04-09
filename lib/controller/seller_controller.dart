@@ -1,11 +1,22 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter/material.dart';
 import '../models/product_model.dart';
 import '../models/seller_model.dart';
 
 
-class SellerController {
+class SellerController extends ChangeNotifier{
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  List<ProductModel> _products = [];
+  List<ProductModel> get products => _products;
+  StreamSubscription<QuerySnapshot>? _productsSubscription;
+  bool _isListeningToAllProducts = false;
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  SellerController();
 
   Future<void> saveSellerInfo(SellerModel sellerInfo) async {
     await _firestore.collection('sellers').doc(sellerInfo.sellerId).set(
@@ -31,7 +42,33 @@ class SellerController {
     );
   }
 
+  Future<void> fetchAllProducts() async {
+    if (_isListeningToAllProducts) return;
+    _isLoading = true;
+    notifyListeners();
+    _productsSubscription?.cancel();
+    _productsSubscription = _firestore.collection('products').snapshots().listen((snapshot) {
+      _products = snapshot.docs.map((doc) => ProductModel.fromMap(doc.data(), doc.id)).toList();
+      _isLoading = false;
+      notifyListeners();
+    });
+    _isListeningToAllProducts = true;
+  }
 
+  Future<void> fetchSellerProducts(String? sellerId) async {
+    _isLoading = true;
+    notifyListeners();
+    _productsSubscription?.cancel();
+    _productsSubscription = _firestore.collection('sellers').doc(sellerId).collection('products').snapshots().listen((snapshot) {
+      _products =
+          snapshot.docs
+              .map((doc) => ProductModel.fromMap(doc.data(), doc.id))
+              .toList();
+      _isLoading = false;
+      notifyListeners();
+    });
+
+  }
 
   Future<void> addSellerProduct(ProductModel productData, String userId) async {
     try {
@@ -56,6 +93,7 @@ class SellerController {
 
       // 4. Set data to the specific document
       await newDocRef.set(updatedProduct.toMap());
+      notifyListeners();
 
     } catch (e) {
       throw FirebaseException(
@@ -65,6 +103,11 @@ class SellerController {
     }
   }
 
+  Future<void> updateSellerProduct(ProductModel productData, String userId) async {
+    await _firestore.collection('sellers').doc(userId).collection('products').doc(productData.productId).set(productData.toMap());
+    notifyListeners();
+  }
+
   Stream<List<ProductModel>> getSellerProducts(String? userId) {
     return _firestore
         .collection('sellers')
@@ -72,7 +115,7 @@ class SellerController {
         .collection('products')
         .snapshots()
         .map((snapshot) => snapshot.docs
-        .map((doc) => ProductModel.fromMap(doc))
+        .map((doc) => ProductModel.fromMap(doc.data(), doc.id))
         .toList());
   }
 
@@ -81,7 +124,7 @@ class SellerController {
         .collectionGroup('products')
         .snapshots()
         .map((snapshot) => snapshot.docs
-        .map((doc) => ProductModel.fromMap(doc))
+        .map((doc) => ProductModel.fromMap(doc.data(),doc.id))
         .toList());
   }
 
@@ -98,5 +141,17 @@ class SellerController {
       batch.delete(doc.reference);
     }
     await batch.commit();
+    notifyListeners();
+  }
+
+  Future<void> deleteProduct(String userId, String productId) async {
+    await _firestore.collection('sellers').doc(userId).collection('products').doc(productId).delete();
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _productsSubscription?.cancel();
+    super.dispose();
   }
 }

@@ -50,7 +50,7 @@ class CartController{
         .map((doc) {
       final data = doc.data();
       return {
-        'product': ProductModel.fromMap(doc),
+        'product': ProductModel.fromMap(doc.data(),doc.id),
         'count': data['count'],
       };
     })

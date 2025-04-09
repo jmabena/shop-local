@@ -119,7 +119,7 @@ class DummyDataGenerator {
                 DocumentSnapshot productSnapshot = await _firestore.collection('sellers').doc(sellerId).collection('products').doc(productId).get();
                 print('product snapshot is $productSnapshot');
                 if (productSnapshot.exists) {
-                  ProductModel product = ProductModel.fromMap(productSnapshot);
+                  ProductModel product = ProductModel.fromMap(productSnapshot.data() as Map<String, dynamic>, productSnapshot.id);
                   var dealData = await _firestore.collection('deals').add({
                     'title': '${product.productName} Discount!',
                     'storeId': sellerId,

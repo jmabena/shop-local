@@ -218,7 +218,8 @@ class _ProductPageState extends State<ProductPage> {
        child: ElevatedButton(
          onPressed: () async {
            try {
-             await Navigator.push(context, MaterialPageRoute(builder: (context) => CreateDealPage(product: widget.productData)));
+             await Navigator.push(context, MaterialPageRoute(builder: (context) => CreateDealPage(product: widget.productData,sellerId: widget.productData.sellerId)));
+             Navigator.pop(context);
            }catch(e){
              ScaffoldMessenger.of(context).showSnackBar(
                SnackBar(content: Text("Error creating deal: $e")),
