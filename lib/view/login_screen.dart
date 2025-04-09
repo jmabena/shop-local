@@ -54,6 +54,14 @@ class _LoginScreenState extends State<LoginScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
+      Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HomePage(
+          onThemeChanged: (isDark) {},
+        ),
+      ),
+      );
     } on FirebaseAuthException catch (e) {
       _showErrorSnackbar("Sign In Error", e.message ?? 'Invalid credentials');
     } catch (e) {
@@ -62,14 +70,6 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) setState(() => _isLoading = false);
     }
 
-  Navigator.pushReplacement(
-  context,
-  MaterialPageRoute(
-    builder: (context) => HomePage(
-      onThemeChanged: (isDark) {},
-    ),
-  ),
-  );
   }
 
 

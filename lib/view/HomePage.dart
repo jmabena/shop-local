@@ -9,6 +9,8 @@ import 'messageScreen.dart';
 
 class HomePage extends StatefulWidget {
   final void Function(bool isDark) onThemeChanged;
+  // Get the current user's email
+  
 
   const HomePage({super.key , required this.onThemeChanged});
 
@@ -22,6 +24,10 @@ class _HomePageState extends State<HomePage> {
   bool _isDarkMode = false;
   final List<String> _allItems = ["Item 1", "Item 2", "Item 3", "Item 4"];
   List<String> _filteredItems = [];
+  String? userEmail = FirebaseAuth.instance.currentUser?.email;
+
+  // // Example usage:
+  // print('User email: $userEmail');
 
   final List<String> menuItems = ["Food", "Clothing", "School Supplies", "Wine"];
 
@@ -103,8 +109,8 @@ class _HomePageState extends State<HomePage> {
                   ),
 
                   const SizedBox(height: 5),
-                  const Text(
-                    'Arshia',
+                   Text(
+                     userEmail ?.split('@').first ?? 'User',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
