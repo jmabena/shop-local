@@ -3,21 +3,21 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>431763454927-pb6dc8fg5ov3t4qteuv3i10m22q4msf7.apps.googleusercontent.com</string>
+	<string>1018530647998-hsvia7oksk8vtshtpve2sfs9ujrorjs2.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.431763454927-pb6dc8fg5ov3t4qteuv3i10m22q4msf7</string>
+	<string>com.googleusercontent.apps.1018530647998-hsvia7oksk8vtshtpve2sfs9ujrorjs2</string>
 	<key>API_KEY</key>
-	<string>AIzaSyC5gJv-S58NJ5tr2UJHgNGOXrnORLsrTbU</string>
+	<string>AIzaSyA-YAChsg3PA6HkLH6WV1S2CWEU11RQWEs</string>
 	<key>GCM_SENDER_ID</key>
-	<string>431763454927</string>
+	<string>1018530647998</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.example.shopLocal</string>
 	<key>PROJECT_ID</key>
-	<string>shoplocal-299a6</string>
+	<string>shoplocal-e4903</string>
 	<key>STORAGE_BUCKET</key>
-	<string>shoplocal-299a6.firebasestorage.app</string>
+	<string>shoplocal-e4903.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -29,6 +29,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:431763454927:ios:42d6774355dc3744b170ba</string>
+	<string>1:1018530647998:ios:f979f39ef592ac8230b3ef</string>
 </dict>
 </plist>

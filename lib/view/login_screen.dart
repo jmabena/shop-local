@@ -61,6 +61,15 @@ class _LoginScreenState extends State<LoginScreen> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+
+  Navigator.pushReplacement(
+  context,
+  MaterialPageRoute(
+    builder: (context) => HomePage(
+      onThemeChanged: (isDark) {},
+    ),
+  ),
+  );
   }
 
 
