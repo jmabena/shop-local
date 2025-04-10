@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../controller/user_controller.dart';
-import '../model/user_model.dart';
+import '../models/user_model.dart';
 import 'home_page.dart'; // Adjust the import based on your project structure
 
 
@@ -58,8 +58,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
         // 2. Save additional user data to Firestore
         final userData = UserModel(
-          id: credential.user!.uid,
-          photoUrl: '',
+          uid: credential.user!.uid,
+          email: _emailController.text.trim(),
           userType: _userTypeIndex == 0 ? 'buyer' : 'seller',
           address: _addressController.text.trim(),
           city: _cityController.text.trim(),
@@ -73,7 +73,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
         // 3. Navigate to appropriate screen based on user type
         Navigator.of(context).pop(); // Remove loading dialog
 
-        Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => HomePage(
+                onThemeChanged: (isDark) {
+                  // Handle theme change if needed
+                },)
+          ),
+        );
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

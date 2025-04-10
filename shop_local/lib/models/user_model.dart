@@ -2,8 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 
 class UserModel {
-  final String? id;
+  final String? uid;
   final String? photoUrl;
+  final String email;
   final String userType;
   final String address;
   final String city;
@@ -12,8 +13,9 @@ class UserModel {
   final String updatedAt;
 
   UserModel({
-    this.id,
+    this.uid,
     this.photoUrl,
+    required this.email,
     required this.userType,
     required this.address,
     required this.city,
@@ -24,8 +26,8 @@ class UserModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'photoUrl': photoUrl,
+      'uid': uid,
+      'email': email,
       'userType': userType,
       'address': address,
       'city': city,
@@ -38,8 +40,9 @@ class UserModel {
   static UserModel fromMap(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     return UserModel(
-      id: data['id'] ?? '',
+      uid: data['uid'] ?? '',
       photoUrl: data['photoUrl'] ?? '',
+      email: data['email'] ?? '',
       userType: data['userType'] ?? '',
       address: data['address'] ?? '',
       city: data['city'] ?? '',

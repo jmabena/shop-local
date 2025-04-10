@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../model/product_model.dart';
+import '../models/product_model.dart';
 
 class CartController extends ChangeNotifier{
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -61,7 +61,7 @@ class CartController extends ChangeNotifier{
         .map((doc) {
       final data = doc.data();
       return {
-        'product': ProductModel.fromMap(doc),
+        'product': ProductModel.fromMap(doc.data(), doc.id),
         'count': data['count'],
       };
     })

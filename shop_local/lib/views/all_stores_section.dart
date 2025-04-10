@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shop_local/model/seller_model.dart';
+import 'package:shop_local/models/seller_model.dart';
 import 'package:shop_local/views/seller_page.dart';
 
 class AllStoresSection extends StatelessWidget {

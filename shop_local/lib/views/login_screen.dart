@@ -53,14 +53,15 @@ class _LoginScreenState extends State<LoginScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
-      Navigator.pushReplacementNamed(context, '/home');
-
     } on FirebaseAuthException catch (e) {
       _showErrorSnackbar("Sign In Error", e.message ?? 'Invalid credentials');
     } catch (e) {
       _showErrorSnackbar("Error", 'An unexpected error occurred');
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+        Navigator.pushReplacementNamed(context, '/home');
+      }
     }
   }
 
@@ -103,10 +104,9 @@ class _LoginScreenState extends State<LoginScreen> {
             .doc(userCredential.user!.uid)
             .set({
           'id': userCredential.user!.uid,
-          'email': googleUser.email,
-          'name': googleUser.displayName,
-          'photoUrl': googleUser.photoUrl,
+          'photoUrl': '',
           'createdAt': DateTime.now().toIso8601String(),
+          'updatedAt': DateTime.now().toIso8601String(),
           'userType': 'buyer', // Default user type
         });
       }

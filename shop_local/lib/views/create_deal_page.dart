@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shop_local/controller/seller_controller.dart';
-import 'package:shop_local/model/seller_model.dart';
+import 'package:shop_local/models/seller_model.dart';
 import '../controller/deals_controller.dart';
-import '../model/deals_model.dart';
-import '../model/product_model.dart';
+import '../models/deals_model.dart';
+import '../models/product_model.dart';
 import 'package:intl/intl.dart';
 
 class CreateDealPage extends StatefulWidget {
@@ -15,7 +16,6 @@ class CreateDealPage extends StatefulWidget {
 }
 
 class _CreateDealPageState extends State<CreateDealPage> {
-  final DealsController _dealsController = DealsController();
   final SellerController _sellerController = SellerController();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _discountController = TextEditingController();
@@ -56,7 +56,7 @@ class _CreateDealPageState extends State<CreateDealPage> {
       expiryDate: _expiryDate,
     );
 
-    _dealsController.addDeal(deal,widget.product.productId,widget.product.sellerId).then((_) {
+    context.read<DealsController>().addDeal(deal,widget.product.productId,widget.product.sellerId).then((_) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Deal Created!')));
       Navigator.pop(context);
     });

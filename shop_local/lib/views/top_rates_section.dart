@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:shop_local/views/seller_page.dart';
 
 class TopRatesSection extends StatelessWidget {
   final List<String> imageUrls = [

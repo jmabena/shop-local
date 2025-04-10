@@ -57,7 +57,7 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your email address';
                   }
-                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                  if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
                     return 'Please enter a valid email address';
                   }
                   return null;
