@@ -26,13 +26,20 @@ class SellerController extends ChangeNotifier{
   }
 
 
-  Stream<SellerModel?> getSellerInfo(String userId) {
+  Stream<SellerModel> getSellerInfo(String? userId) {
     return _firestore.collection('sellers').doc(userId).snapshots().map((doc) {
       if (doc.exists && doc.data() != null) {
         return SellerModel.fromMap(doc.data()!, userId);
       }
-      return null;
+      throw Exception('Seller not found');
     });
+  }
+  Future<ProductModel> getSellerProduct(String? userId, String? productId) async {
+    final doc = await _firestore.collection('sellers').doc(userId).collection('products').doc(productId).get();
+    if (doc.exists && doc.data() != null) {
+      return ProductModel.fromMap(doc.data()!, productId!);
+    }
+    throw Exception('Product not found');
   }
 
 
@@ -56,6 +63,7 @@ class SellerController extends ChangeNotifier{
   }
 
   Future<void> fetchSellerProducts(String? sellerId) async {
+    _isListeningToAllProducts = false;
     _isLoading = true;
     notifyListeners();
     _productsSubscription?.cancel();

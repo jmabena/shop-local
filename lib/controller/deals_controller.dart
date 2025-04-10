@@ -30,6 +30,7 @@ class DealsController extends ChangeNotifier {
   }
 
   Future<void> fetchStoreDeals(String? sellerId) async {
+    _isListeningToAllDeals = false;
     _isLoading = true;
     notifyListeners();
     _dealsSubscription?.cancel();

@@ -29,6 +29,9 @@ class _HomePageState extends State<HomePage> {
   bool _isDarkMode = false;
   List<String> _filteredItems = [];
   int _selectedIndex = 0;
+  List<SellerModel> _filteredSellerList =[];
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
 
   // Setting up the controllers
   //final SellerController sellerController = SellerController();
@@ -55,6 +58,12 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  List<SellerModel> _filterSellers(String query, List<SellerModel> sellers) {
+    return sellers.where((seller) =>
+        seller.organizationName.toLowerCase().contains(query.toLowerCase())).toList();
+        //seller.organizationDesc.toLowerCase().contains(query.toLowerCase())).toList();
+  }
+
   Widget _buildSellerInfoBanner(List<SellerModel> seller) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -64,6 +73,20 @@ class _HomePageState extends State<HomePage> {
         AllStoresSection(seller: seller),
       ],
     );
+  }
+
+  @override
+  void initState(){
+    // _searchController.addListener(() {
+    //   setState(() {});
+    // });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -98,7 +121,7 @@ class _HomePageState extends State<HomePage> {
                   return Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      ImageOrFallbackWidget(
+                      NetworkImageWithFallback(
                         imageUrl: userData.photoUrl,
                         fallbackAsset: null,
                         fallbackWidget: const Icon(Icons.person, size: 60),
@@ -149,14 +172,9 @@ class _HomePageState extends State<HomePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => MultiProvider(
-                      providers: [
-                        ChangeNotifierProvider(create: (_) => DealsController()),
-                        ChangeNotifierProvider(create: (_) => SellerController()),
-                      ],
-                      child: DealsPage(),
+                    builder: (context) =>
+                       DealsPage(),
                     ),
-                  ),
                 );
               },
             ),
@@ -183,6 +201,11 @@ class _HomePageState extends State<HomePage> {
               fillColor: Colors.white,
               contentPadding: const EdgeInsets.symmetric(horizontal: 10),
             ),
+            onChanged: (value) {
+              setState((){
+                _searchQuery = value;
+              });
+            },
           ),
         ),
         actions: [
@@ -198,13 +221,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: MultiProvider(
-        providers: [
-          //ChangeNotifierProvider(create: (_) => DealsController()),
-          ChangeNotifierProvider(create: (_) => SellerController()),
-        ],
-        builder: (context, child) {
-          return SingleChildScrollView(
+      body: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -230,15 +247,15 @@ class _HomePageState extends State<HomePage> {
                     if (!sellerSnapshot.hasData) {
                       return const SizedBox.shrink();
                     }
-                    final seller = sellerSnapshot.data!;
-                    return _buildSellerInfoBanner(seller);
+                    final List<SellerModel> seller = sellerSnapshot.data!;
+                    final filteredSellers =_filterSellers(_searchQuery, seller);
+                    return _buildSellerInfoBanner(filteredSellers);
                   },
                 ),
               ],
             ),
-          );
-        }
-      ),
+          )
+
     );
   }
 }

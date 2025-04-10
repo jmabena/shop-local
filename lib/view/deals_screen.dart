@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shop_local/view/product_page.dart';
+import 'package:shop_local/view/seller_page.dart';
 import '../controller/deals_controller.dart';
+import '../controller/seller_controller.dart';
 import '../models/deals_model.dart';
+import '../models/product_model.dart';
+import '../models/seller_model.dart';
 import 'network_image_builder.dart';
 
 class DealsPage extends StatefulWidget {
@@ -15,7 +20,23 @@ class _DealsPageState extends State<DealsPage> {
   @override
   void initState() {
     super.initState();
+
+    //context.read<DealsController>().fetchAllDeals();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+
+      context.read<DealsController>().fetchAllDeals();
+    });
+  }
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
     context.read<DealsController>().fetchAllDeals();
+  }
+  @override
+  void dispose() {
+    super.dispose();
+
   }
 
   @override
@@ -25,17 +46,21 @@ class _DealsPageState extends State<DealsPage> {
       appBar: AppBar(title: Text('Deals & Promotions')),
       body: Consumer<DealsController>(
         builder: (context, dealsController, child) {
+          ;
           return buildDealsList(dealsController);
         },
       ),
     );
   }
   Widget buildDealsList(DealsController dealsController) {
+
     if (dealsController.isLoading) {
+
       return Center(child: CircularProgressIndicator());
     }
     final dealsList = dealsController.deals;
     if (dealsList.isEmpty) {
+
       return Center(child: Text('No deals available'));
     }
     return ListView.builder(
@@ -43,32 +68,18 @@ class _DealsPageState extends State<DealsPage> {
       itemBuilder: (context, index) {
         final deal = dealsList[index];
         return ListTile(
-          leading:
-          deal.isStoreWide
-              ? Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              image: DecorationImage(
-                image: NetworkImageWithFallback(
-                  imageUrl: deal.storeImage,
-                  fallbackAsset: 'assets/images/fruits.jpg',
+          leading: NetworkImageWithFallback(
+            imageUrl: deal.isStoreWide ? deal.storeImage : deal.productImage,
+            fallbackAsset: 'assets/images/fruits.jpg',
+            builder: (imageProvider) => Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                shape: deal.isStoreWide ? BoxShape.circle : BoxShape.rectangle,
+                image: DecorationImage(
+                  image: imageProvider,
+                  fit: BoxFit.cover,
                 ),
-                fit: BoxFit.cover,
-              ),
-            ),
-          )
-              : Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: NetworkImageWithFallback(
-                  imageUrl: deal.productImage!,
-                  fallbackAsset: 'assets/images/fruits.jpg',
-                ),
-                fit: BoxFit.cover,
               ),
             ),
           ),
@@ -77,11 +88,34 @@ class _DealsPageState extends State<DealsPage> {
           deal.isStoreWide
               ? Text('Store-wide deal at ${deal.storeName}')
               : Text('${deal.discountPercentage}% off!'),
-          onTap: () {
+          onTap: () async {
             if (deal.isStoreWide) {
+
               // Navigate to Store Page
+              final sellerStream = context.read<SellerController>().getSellerInfo(deal.storeId);
+              sellerStream.first.then((sellerData) async {
+
+                final result = await Navigator.push(context, MaterialPageRoute(
+                  builder: (context) => SellerPage(sellerData: sellerData),
+
+                ));
+                if (result == true && mounted) {
+                  context.read<DealsController>().fetchAllDeals();
+                }
+                setState(() {
+
+                  context.read<DealsController>().fetchAllDeals();
+                });
+              });
+
             } else {
               // Navigate to Product Details/add to cart
+
+              final product = await context.read<SellerController>().getSellerProduct(deal.storeId, deal.productId);
+
+              await Navigator.push(context, MaterialPageRoute(
+                  builder: (context) => ProductPage(productData: product,deal: deal)));
+
             }
           },
         );

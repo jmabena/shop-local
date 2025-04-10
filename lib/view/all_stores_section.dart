@@ -36,13 +36,8 @@ class AllStoresSection extends StatelessWidget {
             return GestureDetector(
               onTap: () {
                 Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => MultiProvider(
-                      providers: [
-                        ChangeNotifierProvider(create: (_) => DealsController()),
-                        ChangeNotifierProvider(create: (_) => SellerController()),
-                      ],
-                      child: SellerPage(sellerData: sellerData),
-                    ),
+                    builder: (context) => SellerPage(sellerData: sellerData),
+
                 ));
               },
               child: _buildStoreItem(sellerData),
@@ -64,20 +59,24 @@ class AllStoresSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: Container(
-                height: 150,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: NetworkImageWithFallback(imageUrl: data.logoUrl, fallbackAsset: 'assets/images/fruits.jpg'),
-                    fit: BoxFit.cover,
-                )
-            ),
-            ),
-            ),
-
+          NetworkImageWithFallback(
+              imageUrl: data.picUrl,
+              fallbackAsset: 'assets/images/fruits.jpg',
+              builder: (imageProvider) =>
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                    child: Container(
+                      height: 150,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: imageProvider,
+                            fit: BoxFit.cover,
+                          )
+                      ),
+                    ),
+                  ),
+          ),
           Padding(
             padding: const EdgeInsets.all(12),
             child: Column(

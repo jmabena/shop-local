@@ -44,7 +44,13 @@ class _SellerPageState extends State<SellerPage> {
     });
   }
 
-
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    print("SellerPage: didChangeDependencies called");
+    context.read<DealsController>().fetchStoreDeals(widget.sellerData.sellerId);
+    context.read<SellerController>().fetchSellerProducts(widget.sellerData.sellerId);
+  }
   @override
   void dispose() {
     _searchController.dispose();
@@ -138,16 +144,21 @@ class _SellerPageState extends State<SellerPage> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      image: DecorationImage(
-                        image: NetworkImageWithFallback(imageUrl: product.productUrl!, fallbackAsset: 'assets/images/bg.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    height: 100,
-                    width: 100,
+                  NetworkImageWithFallback(
+                    imageUrl: product.productUrl,
+                    fallbackAsset: 'assets/images/fruits.jpg',
+                    builder: (imageProvider) =>
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            image: DecorationImage(
+                              image: imageProvider,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          height: 100,
+                          width: 100,
+                        ),
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -182,58 +193,63 @@ class _SellerPageState extends State<SellerPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            image: DecorationImage(
-              image: NetworkImageWithFallback(imageUrl: widget.sellerData.picUrl!, fallbackAsset: 'assets/images/bg.jpg'),
-              fit: BoxFit.cover,
-            ),
-          ),
-          height: 200,
-          width: MediaQuery.of(context).size.width,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                widget.sellerData.organizationName,
-                style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-              SizedBox(
-                width: 300,
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.search),
-                    hintText: 'Search',
-                    suffixIcon: _query.isNotEmpty
-                        ? IconButton(
-                        onPressed: () {
-                          _searchController.clear();
+        NetworkImageWithFallback(
+          imageUrl: widget.sellerData.picUrl,
+          fallbackAsset: 'assets/images/bg.jpg',
+          builder: (imageProvider) =>
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  image: DecorationImage(
+                    image: imageProvider,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                height: 200,
+                width: MediaQuery.of(context).size.width,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      widget.sellerData.organizationName,
+                      style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                    SizedBox(
+                      width: 300,
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          prefixIcon: const Icon(Icons.search),
+                          hintText: 'Search',
+                          suffixIcon: _query.isNotEmpty
+                              ? IconButton(
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {
+                                  _query = '';
+                                });
+                              },
+                              icon: Icon(Icons.clear)
+                          )
+                              : null,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(50),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        textInputAction: TextInputAction.search,
+                        onSubmitted: (value) {
                           setState(() {
-                            _query = '';
+                            _query = value;
                           });
                         },
-                        icon: Icon(Icons.clear)
-                    )
-                        : null,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(50),
+                      ),
                     ),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                  textInputAction: TextInputAction.search,
-                  onSubmitted: (value) {
-                    setState(() {
-                      _query = value;
-                    });
-                  },
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
+        )
       ],
     );
   }

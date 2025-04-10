@@ -21,9 +21,8 @@ class ProductPage extends StatefulWidget {
 }
 
 class _ProductPageState extends State<ProductPage> {
-   final UserController userController = UserController();
    final CartController cartController = CartController();
-   final DealsController dealsController = DealsController();
+
 
    @override
    void initState() {
@@ -66,23 +65,29 @@ class _ProductPageState extends State<ProductPage> {
   }
 
   Widget buildProductImage(ProductModel product) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        image: DecorationImage(
-          image: NetworkImageWithFallback(imageUrl: product.productUrl, fallbackAsset: 'assets/images/fruits.jpg'),
-          fit: BoxFit.cover,
-        ),
-      ),
-      height: 200,
-      width: 100,
-      child: Center(
-        child: Text(
-          product.productName,
-          style: TextStyle(fontSize: 36, color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-      ),
+    return NetworkImageWithFallback(
+      imageUrl: product.productUrl,
+      fallbackAsset: 'assets/images/fruits.jpg',
+      builder: (imageProvider) =>
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              image: DecorationImage(
+                image: imageProvider,
+                fit: BoxFit.cover,
+              ),
+            ),
+            height: 200,
+            width: 100,
+            child: Center(
+              child: Text(
+                product.productName,
+                style: TextStyle(fontSize: 36, color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
+          )
     );
+
   }
 
   Widget buildDescriptionBox(ProductModel product) {

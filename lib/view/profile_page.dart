@@ -2,12 +2,14 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:shop_local/controller/user_controller.dart';
 import 'package:shop_local/view/seller_profile.dart';
 import 'dart:io';
 
 import '../controller/seller_controller.dart';
 import '../models/user_model.dart';
+import 'network_image_builder.dart';
 import 'network_image_builder_with_widget.dart';
 
 
@@ -25,7 +27,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? photoUrl;
 
   final UserController userController = UserController();
-  final SellerController sellerController = SellerController();
 
 
   Future<void> _pickImage() async {
@@ -104,8 +105,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _deleteAccount(UserModel userData) async{
     try{
       if (userData.userType == 'seller') {
-        await sellerController.deleteSellerInfo(userData.id!);
-        await sellerController.deleteSellerProducts(userData.id!);
+        await context.read<SellerController>().deleteSellerInfo(userData.id!);
+        await context.read<SellerController>().deleteSellerProducts(userData.id!);
       }
       await userController.deleteUser(userData.id!);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -171,7 +172,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       GestureDetector(
                         onTap: _showAddProfileImageDialog,
-                        child: ImageOrFallbackWidget(
+                        child: NetworkImageWithFallback(
                           imageUrl: userData.photoUrl,
                           fallbackWidget: const Icon(Icons.person, size: 60),
                           builder: (imageProvider) => CircleAvatar(
