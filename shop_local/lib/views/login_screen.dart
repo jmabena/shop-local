@@ -53,6 +53,8 @@ class _LoginScreenState extends State<LoginScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
+      Navigator.pushReplacementNamed(context, '/home');
+
     } on FirebaseAuthException catch (e) {
       _showErrorSnackbar("Sign In Error", e.message ?? 'Invalid credentials');
     } catch (e) {
@@ -100,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
             .collection('users')
             .doc(userCredential.user!.uid)
             .set({
-          'uid': userCredential.user!.uid,
+          'id': userCredential.user!.uid,
           'email': googleUser.email,
           'name': googleUser.displayName,
           'photoUrl': googleUser.photoUrl,

@@ -1,11 +1,15 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../controller/cart_controller.dart';
+import '../controller/deals_controller.dart';
 import '../controller/seller_controller.dart';
 import '../controller/user_controller.dart';
 import '../model/seller_model.dart';
 import '../model/user_model.dart';
-import 'FilterMenu.dart';
-import 'order_page.dart';
+import 'cart_icon_widget.dart';
+import 'filter_menu.dart';
+import 'deals_screen.dart';
 import 'profile_page.dart';
 import 'all_stores_section.dart';
 
@@ -22,15 +26,32 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isDarkMode = false;
-  List<String> _filteredItems = [];
+  String _query = '';
+  final  _searchController = TextEditingController();
   int _selectedIndex = 0;
+  List<SellerModel> sellers = [];
+  List<SellerModel> _filteredSellers = [];
 
   // Setting up the controllers
   final SellerController sellerController = SellerController();
   final UserController userController = UserController();
 
-  final List<String> menuItems = ["Food", "Clothing", "School Supplies", "Wine"];
+  @override
+  void initState() {
+    super.initState();
+    // Listen for changes in the search field and update the query.
+    _searchController.addListener(() {
+      setState(() {
+        _query = _searchController.text;
+      });
+    });
+  }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   void _toggleTheme() {
     setState(() {
@@ -39,13 +60,26 @@ class _HomePageState extends State<HomePage> {
     widget.onThemeChanged(_isDarkMode);
   }
 
-  void _filterItems(int index) {
+  // Filters businesses based on the query.
+  List<SellerModel> _filterBusinesses(List<SellerModel> businesses) {
+    if (_query.isEmpty) return businesses;
+    return businesses.where((business) {
+      final businessName = business.organizationName.toLowerCase().contains(_query.toLowerCase());
+      final businessType =
+      business.organizationType.toLowerCase().contains(_query.toLowerCase());
+      return businessName || businessType;
+    }).toList();
+  }
+
+  void _filterItems(int index, String title) {
     setState(() {
       _selectedIndex = index;
-      if (index == 0) {
-        _filteredItems = List.from(_filteredItems);
+      if (index == 0 || title == "All") {
+        _filteredSellers =  sellers;
       } else {
-        _filteredItems = _filteredItems.where((item) => item.contains("$index")).toList();
+        _filteredSellers = sellers.where((seller) {
+          return seller.organizationType == title;
+        }).toList();
       }
     });
   }
@@ -65,7 +99,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final firebaseUser = FirebaseAuth.instance.currentUser;
     return Scaffold(
-      backgroundColor: _isDarkMode ? Colors.black : Colors.white,
+     // backgroundColor: _isDarkMode ? Colors.black : Colors.white,
       key: _scaffoldKey,
       drawer: Drawer(
         child: ListView(
@@ -138,8 +172,18 @@ class _HomePageState extends State<HomePage> {
             ),
             ListTile(
               leading: const Icon(Icons.newspaper),
-              title: const Text('News & Updates'),
-              onTap: () {},
+              title: const Text('Deals & Offers'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChangeNotifierProvider<DealsController>(
+                      create: (context) => DealsController(),
+                      child: DealsPage(),
+                    ),
+                  ),
+                );
+              },
             ),
             ListTile(
               leading: const Icon(Icons.logout),
@@ -155,24 +199,37 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: SizedBox(
           child: TextField(
+            controller: _searchController,
             decoration: InputDecoration(
-              hintText: 'Search...',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(50),
-              ),
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                hintText: 'Search',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _query.isNotEmpty
+                    ? IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() {
+                        _query = '';
+                      });
+                    }
+                )
+                    : null,
+                filled: true,
+                fillColor: _isDarkMode ? Colors.grey[800] : Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(50.0),
+                )
             ),
+            textInputAction: TextInputAction.search,
+            onSubmitted: (value) {
+              setState(() {
+                _query = value;
+              });
+            },
           ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => OrderPage()));
-            },
-          ),
+          CartIconWithBadge(cartController: CartController(),),
           IconButton(
             icon: Icon(_isDarkMode ? Icons.dark_mode : Icons.light_mode),
             onPressed: _toggleTheme,
@@ -183,10 +240,25 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FilterMenu(
-              selectedIndex: _selectedIndex,
-              onItemSelected: _filterItems,
-              items: menuItems,
+            StreamBuilder(
+                stream: sellerController.getCategories(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text("Error: ${snapshot.error}"));
+                  }
+                  if (!snapshot.hasData) {
+                    return const SizedBox.shrink();
+                  }
+                  final categories = snapshot.data!;
+                  return FilterMenu(
+                    selectedIndex: _selectedIndex,
+                    onItemSelected: _filterItems,
+                    categories: categories,
+                  );
+                }
             ),
             // Add Stream Builder for seller info
             StreamBuilder(
@@ -201,8 +273,11 @@ class _HomePageState extends State<HomePage> {
                 if (!sellerSnapshot.hasData) {
                   return const SizedBox.shrink();
                 }
-                final seller = sellerSnapshot.data!;
-                return _buildSellerInfoBanner(seller);
+                sellers = sellerSnapshot.data!;
+
+                // Filter the sellers based on the search query
+                final filteredSellers = _query.isEmpty ? _filteredSellers.isEmpty ? sellers : _filteredSellers : _filterBusinesses(sellers);
+                return _buildSellerInfoBanner(filteredSellers);
               },
             ),
           ],

@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import '../model/user_model.dart';
 
-class UserController {
+class UserController extends ChangeNotifier {
   final CollectionReference _usersCollection =
   FirebaseFirestore.instance.collection('users');
 

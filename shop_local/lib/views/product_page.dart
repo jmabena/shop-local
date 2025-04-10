@@ -1,14 +1,18 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:shop_local/model/product_model.dart';
-
+import 'package:shop_local/views/network_image_builder.dart';
 import '../controller/cart_controller.dart';
+import '../controller/deals_controller.dart';
 import '../controller/user_controller.dart';
-import 'order_page.dart';
+import '../model/deals_model.dart';
+import '../model/product_model.dart';
+import 'cart_icon_widget.dart';
+import 'create_deal_page.dart';
 
 class ProductPage extends StatefulWidget {
   final ProductModel productData;
-  const ProductPage({super.key, required this.productData});
+  final Deal? deal;
+  const ProductPage({super.key, required this.productData, this.deal});
 
   @override
   State<ProductPage> createState() => _ProductPageState();
@@ -16,23 +20,24 @@ class ProductPage extends StatefulWidget {
 }
 
 class _ProductPageState extends State<ProductPage> {
-   final UserController userController = UserController();
-   final CartController cartController = CartController();
+  final UserController userController = UserController();
+  final DealsController dealsController = DealsController();
+  final CartController cartController = CartController();
+
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final firebaserUser = FirebaseAuth.instance.currentUser;
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 10,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => OrderPage()));
-            },
-          ),
+          CartIconWithBadge(cartController: CartController(),),
         ],
       ),
       body: Container(
@@ -46,7 +51,7 @@ class _ProductPageState extends State<ProductPage> {
             //buildSection("Frequently bought together"),
             //buildFrequentlyBoughtGrid(),
             SizedBox(height: 20),
-            buildOrderButton(),
+            firebaserUser?.uid == widget.productData.sellerId ? buildCreateDealButton() : buildOrderButton(cartController),
           ],
         ),
       ),
@@ -58,7 +63,7 @@ class _ProductPageState extends State<ProductPage> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
         image: DecorationImage(
-          image: NetworkImage(product.productUrl),
+          image: NetworkImageWithFallback(imageUrl: product.productUrl, fallbackAsset: 'assets/images/fruits.jpg'),
           fit: BoxFit.cover,
         ),
       ),
@@ -136,7 +141,7 @@ class _ProductPageState extends State<ProductPage> {
     );
   }
 
-  Widget buildOrderButton() {
+  Widget buildOrderButton(CartController cartController) {
     return Center(
       child: ElevatedButton(
         onPressed: () async {
@@ -159,7 +164,25 @@ class _ProductPageState extends State<ProductPage> {
               return;
             }
             // Call the controller method to add the product to the cart.
-            await cartController.addToCart(widget.productData);
+            double finalPrice = widget.productData.productPrice;
+            if (widget.deal != null && widget.deal?.discountPercentage != null) {
+              double? discount;
+              widget.deal?.discountPercentage != null ? discount = widget.deal?.discountPercentage : 0;
+              if (discount != null) {
+                finalPrice = widget.productData.productPrice - (widget.productData.productPrice * (discount / 100));
+              }
+            }
+            ProductModel product = ProductModel(
+              productId: widget.productData.productId,
+              productUrl: widget.productData.productUrl,
+              productName: widget.productData.productName,
+              productPrice: finalPrice,
+              productDesc: widget.productData.productDesc,
+              sellerId: widget.productData.sellerId,
+              hasDeal: widget.productData.hasDeal,
+
+            );
+            await cartController.addToCart(product);
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text("Product added to cart successfully!"), duration: Duration(seconds: 1)),
             );
@@ -181,6 +204,33 @@ class _ProductPageState extends State<ProductPage> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
+    );
+  }
+  buildCreateDealButton(){
+    return Center(
+        child: ElevatedButton(
+          onPressed: () async {
+            try {
+              await Navigator.push(context, MaterialPageRoute(builder: (context) => CreateDealPage(product: widget.productData)));
+            }catch(e){
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Error creating deal: $e")),
+              );
+            }
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.black,
+            padding: EdgeInsets.symmetric(vertical: 15, horizontal: 50),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
+            ),
+          ),
+          child: Text(
+            "Create Deal",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+          ),
+
+        )
     );
   }
 }

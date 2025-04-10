@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:shop_local/model/seller_model.dart';
+import 'package:shop_local/controller/cart_controller.dart';
+import 'package:shop_local/views/network_image_builder.dart';
 import 'package:shop_local/views/product_page.dart';
+import '../controller/deals_controller.dart';
 import '../controller/seller_controller.dart';
 import '../controller/user_controller.dart';
+import '../model/deals_model.dart';
 import '../model/product_model.dart';
-import 'order_page.dart';
+import '../model/seller_model.dart';
+import 'cart_icon_widget.dart';
 
 class SellerPage extends StatefulWidget {
   final SellerModel sellerData;
@@ -17,19 +21,55 @@ class SellerPage extends StatefulWidget {
 class _SellerPageState extends State<SellerPage> {
   final  _searchController = TextEditingController();
   final userController = UserController();
+  final dealsController = DealsController();
   final sellerController = SellerController();
   String _query = '';
+  List<Deal>? _productDeals;
+  List<Deal>? _storeDeals;
+  bool _isLoadingDeals = false;
+
 
 
   @override
   void initState() {
     super.initState();
     // Listen for changes in the search field and update the query.
+    _getDeals();
     _searchController.addListener(() {
       setState(() {
         _query = _searchController.text;
       });
     });
+  }
+  Future<void> _getDeals() async {
+    setState(() {
+      _isLoadingDeals = true;
+    });
+    _productDeals = await dealsController.getProductDeals(widget.sellerData.sellerId);
+    _storeDeals = await dealsController.getStoreDeals(widget.sellerData.sellerId);
+    setState(() {
+      _isLoadingDeals = false;
+
+    });
+  }
+
+  bool isProductInDeals(ProductModel product) {
+    if (_productDeals == null) return false;
+    return _productDeals!.any((deal) => deal.productId == product.productId);
+  }
+
+  Deal getDealForProduct(ProductModel product) {
+    if (_productDeals == null) throw Exception('Deals not loaded');
+    return _productDeals!.firstWhere((deal) => deal.productId == product.productId);
+  }
+
+  // Filters products based on the query.
+  List<ProductModel> _filterProducts (List<ProductModel> products) {
+    if (_query.isEmpty) return products;
+    return products.where((product) {
+      final productName = product.productName.toLowerCase().contains(_query.toLowerCase());
+      return productName;
+    }).toList();
   }
 
   @override
@@ -42,49 +82,61 @@ class _SellerPageState extends State<SellerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 10,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => OrderPage()));
-            },
-          ),
+          CartIconWithBadge(cartController: CartController(),),
         ],
       ),
-      body: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
-        child: ListView(
-          children: [
-            buildHeader(context),
-            SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(10.0),
-              child: Text(widget.sellerData.organizationDesc,
-                style: TextStyle(fontSize: 16),),
-            ),
-            SizedBox(height: 10),
-            StreamBuilder(
-              stream: sellerController.getSellerProducts(widget.sellerData.sellerId),
-              builder: (context, snapshot) {
-                final productInfo = snapshot.data ?? [];
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return Center(child: Text("Error: ${snapshot.error}"));
-                }
-                if (!snapshot.hasData || productInfo.isEmpty) {
-                  return Center(
-                    child: Text('This seller has no products yet.'),
-                  );
-                }
-                return _buildProductInfoSection(productInfo);
-              },
-            ),
-          ],
+      body: Expanded(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+          child: ListView(
+            children: [
+              buildHeader(context),
+              SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(10.0),
+                child: Text(widget.sellerData.organizationDesc,
+                  style: TextStyle(fontSize: 16),),
+              ),
+              SizedBox(height: 10),
+              // Display store deals if available
+              if (_storeDeals != null && _storeDeals!.isNotEmpty)
+                Center(child: Text(_storeDeals!.first.condition!,
+                  softWrap: true,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 16, color: Colors.grey),),),
+
+              SizedBox(height: 10),
+              // Display product deals if available
+              StreamBuilder(
+                stream: sellerController.getSellerProducts(widget.sellerData.sellerId!),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text("Error: ${snapshot.error}"));
+                  }
+                  if(_isLoadingDeals){
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasData && snapshot.data != null) {
+                    final productInfo = snapshot.data!;
+                    // Filter products based on the search query
+                    final filteredProducts = _filterProducts(productInfo);
+                    return _buildProductInfoSection(filteredProducts);
+                  } else {
+                    // If no products are found, show a message.
+                    return Center(
+                      child: Text('This seller has no products yet.'),
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -107,10 +159,16 @@ class _SellerPageState extends State<SellerPage> {
           itemCount: productInfo.length,
           itemBuilder: (context, index) {
             final product = productInfo[index];
+            Deal? deal = isProductInDeals(product) ? getDealForProduct(product) : null;
+            double finalPrice = product.productPrice;
+            if (deal != null && deal.discountPercentage != null) {
+              finalPrice = product.productPrice - (product.productPrice * (deal.discountPercentage! / 100));
+
+            }
             return GestureDetector(
               onTap: () {
                 Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => ProductPage(productData: product,)));
+                    builder: (context) => ProductPage(productData: product,deal: deal)));
               },
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -120,7 +178,7 @@ class _SellerPageState extends State<SellerPage> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
                       image: DecorationImage(
-                        image: NetworkImage(product.productUrl),
+                        image: NetworkImageWithFallback(imageUrl: product.productUrl!, fallbackAsset: 'assets/bg.jpg'),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -131,8 +189,21 @@ class _SellerPageState extends State<SellerPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SizedBox(height: 5),
+                      isProductInDeals(product) ? RichText(
+                        text: TextSpan(
+                            children: <TextSpan>[
+                              TextSpan(
+                                text: '${product.productPrice}', style: TextStyle(decoration: TextDecoration.lineThrough, color: Colors.grey),
+                              ),
+                              TextSpan(text: '  '),
+                              TextSpan(
+                                text: '$finalPrice', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                              ),
+                            ]
+                        ),
+                      ) :
                       Text('${product.productPrice}', style: TextStyle(fontWeight: FontWeight.bold)),
-                      Text(product.productName),
+                      Text(product.productName,overflow: TextOverflow.ellipsis,),
                     ],
                   ),
                 ],
@@ -151,7 +222,7 @@ class _SellerPageState extends State<SellerPage> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             image: DecorationImage(
-              image: NetworkImage(widget.sellerData.picUrl),
+              image: NetworkImageWithFallback(imageUrl: widget.sellerData.picUrl, fallbackAsset: 'assets/images/bg.jpg'),
               fit: BoxFit.cover,
             ),
           ),

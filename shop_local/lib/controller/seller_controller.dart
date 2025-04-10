@@ -1,34 +1,64 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+
+import '../model/categories_model.dart';
 import '../model/product_model.dart';
 import '../model/seller_model.dart';
 
-class SellerController {
+
+class SellerController extends ChangeNotifier{
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> saveSellerInfo(SellerModel sellerInfo) async {
+    // Save seller info in the 'sellers' collection.
     await _firestore.collection('sellers').doc(sellerInfo.sellerId).set(
       sellerInfo.toMap(),
       SetOptions(merge: true),
     );
+
+    // Create or update the category document.
+    // Using the organizationType as the document ID ensures uniqueness.
+    final category = CategoryModel(
+      id: sellerInfo.organizationType,  // for example, "Food", "Clothing", etc.
+      name: sellerInfo.organizationType,
+    );
+
+    await _firestore.collection('categories')
+        .doc(sellerInfo.organizationType)
+        .set(category.toMap(), SetOptions(merge: true));
   }
 
+
+  Stream<List<CategoryModel>> getCategories() {
+    return _firestore.collection('categories').snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) => CategoryModel.fromMap(doc.data())).toList();
+    });
+  }
 
   Stream<SellerModel?> getSellerInfo(String userId) {
     return _firestore.collection('sellers').doc(userId).snapshots().map((doc) {
       if (doc.exists && doc.data() != null) {
-        return SellerModel.fromMap(doc.data()!);
+        return SellerModel.fromMap(doc.data()!, userId);
       }
       return null;
     });
   }
 
+  Future<SellerModel?> getSellerInfoOnce(String userId) async {
+    final doc = await _firestore.collection('sellers').doc(userId).get();
+    if (doc.exists && doc.data() != null) {
+      return SellerModel.fromMap(doc.data()!, userId);
+    }
+    return null;
+  }
 
   Stream<List<SellerModel>> getAllSellersStream() {
     return _firestore.collection('sellers').snapshots().map((querySnapshot) =>
-        querySnapshot.docs.map((doc) => SellerModel.fromMap(doc.data())).toList()
+        querySnapshot.docs.map((doc) => SellerModel.fromMap(doc.data(), doc.id)).toList()
     );
   }
+
 
 
   Future<void> addSellerProduct(ProductModel productData, String userId) async {
@@ -63,7 +93,7 @@ class SellerController {
     }
   }
 
-  Stream<List<ProductModel>> getSellerProducts(String userId) {
+  Stream<List<ProductModel>> getSellerProducts(String? userId) {
     return _firestore
         .collection('sellers')
         .doc(userId)

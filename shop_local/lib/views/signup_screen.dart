@@ -73,15 +73,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         // 3. Navigate to appropriate screen based on user type
         Navigator.of(context).pop(); // Remove loading dialog
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) => HomePage(
-                onThemeChanged: (isDark) {
-                  // Handle theme change if needed
-                },)
-          ),
-        );
+        Navigator.pushReplacementNamed(context, '/home');
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

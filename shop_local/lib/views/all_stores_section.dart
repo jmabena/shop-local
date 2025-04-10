@@ -70,24 +70,30 @@ class AllStoresSection extends StatelessWidget {
                   backgroundImage: NetworkImage(data.logoUrl),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      data.organizationName,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+              // Wrap the Column in Expanded so that it knows its width constraints
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        data.organizationName,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      data.organizationDesc,
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ],
+                      const SizedBox(height: 5),
+                      Text(
+                        data.organizationDesc,
+                        style: const TextStyle(color: Colors.grey),
+                        softWrap: true,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
