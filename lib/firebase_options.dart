@@ -63,6 +63,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1018530647998',
     projectId: 'shoplocal-e4903',
     storageBucket: 'shoplocal-e4903.firebasestorage.app',
+    androidClientId: '1018530647998-19rds15qiifjjv5hegk9avu16ktbmb5c.apps.googleusercontent.com',
     iosClientId: '1018530647998-hsvia7oksk8vtshtpve2sfs9ujrorjs2.apps.googleusercontent.com',
     iosBundleId: 'com.example.shopLocal',
   );
@@ -73,6 +74,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1018530647998',
     projectId: 'shoplocal-e4903',
     storageBucket: 'shoplocal-e4903.firebasestorage.app',
+    androidClientId: '1018530647998-19rds15qiifjjv5hegk9avu16ktbmb5c.apps.googleusercontent.com',
     iosClientId: '1018530647998-hsvia7oksk8vtshtpve2sfs9ujrorjs2.apps.googleusercontent.com',
     iosBundleId: 'com.example.shopLocal',
   );

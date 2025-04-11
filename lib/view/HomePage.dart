@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/rendering.dart';
+import 'package:shop_local/model/story.dart';
 
+import '../model/category.dart';
+import '../services/FirebaseService.dart';
 import 'AllStoresSection.dart';
 import 'FilterMenu.dart';
 import 'TopRatesSection.dart';
 import 'messageScreen.dart';
+import 'profile_page.dart';
+import 'news_screen.dart';
 
 
 class HomePage extends StatefulWidget {
   final void Function(bool isDark) onThemeChanged;
-  // Get the current user's email
-  
 
   const HomePage({super.key , required this.onThemeChanged});
 
@@ -20,16 +24,15 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  int _selectedIndex = 0;
+  final FirebaseService _firebaseService = FirebaseService();
+  List<Category> categories = [];
+  int selectedIndex = 0;
   bool _isDarkMode = false;
-  final List<String> _allItems = ["Item 1", "Item 2", "Item 3", "Item 4"];
-  List<String> _filteredItems = [];
+  final List<Story> _filteredItems = [];
+  final TextEditingController _searchController = TextEditingController();
+  List<Story> _searchResults = [];
+  bool _showSuggestions = false;
   String? userEmail = FirebaseAuth.instance.currentUser?.email;
-
-  // // Example usage:
-  // print('User email: $userEmail');
-
-  final List<String> menuItems = ["Food", "Clothing", "School Supplies", "Wine"];
 
 
   void _toggleTheme() {
@@ -39,7 +42,7 @@ class _HomePageState extends State<HomePage> {
     widget.onThemeChanged(_isDarkMode);
   }
 
-  Future<void> _logout() async {
+ Future<void> _logout() async {
   try {
     await FirebaseAuth.instance.signOut();
     // Navigate back to login screen
@@ -52,39 +55,62 @@ class _HomePageState extends State<HomePage> {
         SnackBar(content: Text('Logout failed: ${e.toString()}')),
       );
     }
-  }
-  }
+  }}
 
 
   @override
   void initState() {
     super.initState();
-    _filteredItems = List.from(_allItems);
+    _loadCategories();
+    _loadItems();
   }
-
+  void _loadCategories() async {
+    categories = await _firebaseService.getCategories();
+    setState(() {});
+  }
   void _filterItems(int index) {
     setState(() {
-      _selectedIndex = index;
-      if (index == 0) {
-        _filteredItems = List.from(_allItems);
-      } else {
-        _filteredItems = _allItems.where((item) => item.contains("$index")).toList();
-      }
+      selectedIndex = index;
     });
   }
 
 
+  void _loadItems() async {
+    final stories = await _firebaseService.getAllStories();
+    setState(() {
+      _filteredItems.addAll(stories.map((s) => Story(id: s.id , imageUrl: s.imageUrl , categoryId: s.categoryId , title: s.title)));
+    });
+  }
 
+
+  void _onSearchChanged(String query) {
+    if (query.isEmpty) {
+      setState(() {
+        _searchResults.clear();
+        _showSuggestions = false;
+      });
+      return;
+    }
+
+    final results = _filteredItems
+        .where((item) => item.title.toLowerCase().contains(query.toLowerCase()))
+        .toList();
+
+    setState(() {
+      _searchResults = results;
+      _showSuggestions = results.isNotEmpty;
+    });
+  }
 
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      drawer: Drawer(
+      drawer:Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
-          children:[
+          children: [
             DrawerHeader(
               decoration: const BoxDecoration(
                 color: Colors.blue,
@@ -97,12 +123,12 @@ class _HomePageState extends State<HomePage> {
                     height: 100,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2), 
+                      border: Border.all(color: Colors.white, width: 2),
 
                     ),
                     child: ClipOval(
                       child: Image.asset(
-                        "assets/images/defaultUserImage.png", 
+                        "assets/images/defaultUserImage.png",
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -128,7 +154,7 @@ class _HomePageState extends State<HomePage> {
             ListTile(
               leading: const Icon(Icons.person),
               title: const Text('Profile'),
-              onTap: () {},
+              onTap: () {Navigator.push(context, MaterialPageRoute(builder: (context) =>  ProfileScreen()));},
             ),
             ListTile(
               leading: const Icon(Icons.message),
@@ -138,28 +164,20 @@ class _HomePageState extends State<HomePage> {
             ListTile(
               leading: const Icon(Icons.newspaper),
               title: const Text('News & Updates'),
-              onTap: () {},
+              onTap: () {Navigator.push(context, MaterialPageRoute(builder: (context) =>  NewsPage()));},
             ),
             ListTile(
               leading: const Icon(Icons.logout),
               title: const Text('Sign out'),
-              onTap: () {_logout();},
+              onTap: () {
+                _logout();
+              },
             ),
           ],
         ),
       ),
-      appBar: AppBar(
-        title: const SizedBox(
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: 'Search...',
-              border: InputBorder.none,
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: EdgeInsets.symmetric(horizontal: 10),
-            ),
-          ),
-        ),
+    appBar: AppBar(
+
         actions: [
           IconButton(
             icon: Icon(_isDarkMode ? Icons.dark_mode : Icons.light_mode),
@@ -167,28 +185,107 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body:  Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      body: Stack(
         children: [
-          FilterMenu(
-            selectedIndex: _selectedIndex,
-            onItemSelected: _filterItems,
-            items: menuItems,
+          Column(
+            children: [
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: _onSearchChanged,
+                    decoration: const InputDecoration(
+                      hintText: 'Search...',
+                      border: OutlineInputBorder(),
+                      fillColor: Colors.white,
+                      filled: true,
+                      prefixIcon: Icon(Icons.search),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: ListView(
+                  children: [
+                    FilterMenu(
+                      selectedIndex: selectedIndex,
+                      onItemSelected: _filterItems,
+                      items: ['All', ...categories.map((c) => c.name).toList()],
+                    ),
+
+                    FutureBuilder(
+                      future: _firebaseService.getTopRates(),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return const CircularProgressIndicator();
+                        }
+                        return TopRatesSection(topRates: snapshot.data!);
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    FutureBuilder(
+                      future: selectedIndex == 0
+                          ? _firebaseService.getAllStories()
+                          : _firebaseService.getStoriesByCategory(
+                          categories[selectedIndex - 1].id),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return const CircularProgressIndicator();
+                        }
+                        return AllStoresSection(stories: snapshot.data!);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
 
-          Expanded(
-            child: ListView.builder(
-              itemCount: _filteredItems.length,
-              itemBuilder: (context, index) {
-                return ListTile(title: Text(_filteredItems[index]));
-              },
+          if (_showSuggestions)
+            Positioned(
+              top: 70,
+              left: 16,
+              right: 16,
+              child: Material(
+                elevation: 4,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  height: 200,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: ListView.builder(
+                    itemCount: _searchResults.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        leading: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            _searchResults[index].imageUrl,
+                            width: 40,
+                            height: 40,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Icon(Icons.image),
+                          ),
+                        ),
+                        title: Text(_searchResults[index].title),
+                        onTap: () {
+                          _searchController.text = _searchResults[index].title;
+                          _onSearchChanged(_searchResults[index].title);
+                          setState(() => _showSuggestions = false);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ),
             ),
-          ),
-          TopRatesSection(),
-          const SizedBox(height: 20,),
-         AllStoresSection()
         ],
       ),
     );
+
   }
 }

@@ -8,6 +8,7 @@ import 'reset_password.dart';
 import 'signup_screen.dart';
 // import 'directory_screen.dart';
 import 'HomePage.dart';
+import 'seller_page.dart';
 // import 'dart:io';
 
 
@@ -71,6 +72,58 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
   }
+
+//   Future<void> _signIn() async {
+//   if (!_formKey.currentState!.validate()) return;
+  
+//   setState(() => _isLoading = true);
+//   try {
+//     // 1. Authenticate user
+//     final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+//       email: _emailController.text.trim(),
+//       password: _passwordController.text,
+//     );
+    
+//     // 2. Get user document from Firestore
+//     final userDoc = await FirebaseFirestore.instance
+//         .collection('users')
+//         .doc(userCredential.user?.uid)
+//         .get();
+    
+//     // 3. Check if user exists and has a type
+//     if (!userDoc.exists) {
+//       throw Exception('User document not found');
+//     }
+    
+//     final userType = userDoc.data()?['userType'] as String?;
+    
+//     // 4. Navigate based on user type
+//     if (userType == 'seller') {
+//       Navigator.pushReplacement(
+//         context,
+//         MaterialPageRoute(
+//           builder: (context) => SellerPage(), // Your seller page
+//         ),
+//       );
+//     } else if (userType == 'buyer') {
+//       Navigator.pushReplacement(
+//         context,
+//         MaterialPageRoute(
+//           builder: (context) => HomePage(onThemeChanged: (isDark) {}), // Your buyer page
+//         ),
+//       );
+//     } else {
+//       throw Exception('Unknown user type');
+//     }
+    
+//   } on FirebaseAuthException catch (e) {
+//     _showErrorSnackbar("Sign In Error", e.message ?? 'Invalid credentials');
+//   } catch (e) {
+//     _showErrorSnackbar("Error", e.toString());
+//   } finally {
+//     if (mounted) setState(() => _isLoading = false);
+//   }
+// }
 
 
   Future<void> _signInWithGoogle() async {

@@ -12,9 +12,9 @@ class FilterMenu extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
       decoration: BoxDecoration(
-        color: Colors.white54,
-        border: Border.all(width: 1 , color: Colors.black),
-        borderRadius: BorderRadius.circular(15)
+          color: Colors.white54,
+          border: Border.all(width: 1 , color: Colors.black),
+          borderRadius: BorderRadius.circular(15)
       ),
       margin: const EdgeInsets.all(10),
       child: Row(
@@ -33,7 +33,7 @@ class FilterMenu extends StatelessWidget {
               child: Text(
                 items[index],
                 style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.blue, 
+                  color: isSelected ? Colors.white : Colors.blue,
                   fontWeight: FontWeight.bold,
                 ),
               ),

@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "1018530647998-19rds15qiifjjv5hegk9avu16ktbmb5c.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.shop_local",
+            "certificate_hash": "5b1a09bb9bd89926a0d46b6fa72614e7b9149bee"
+          }
+        },
+        {
           "client_id": "1018530647998-s0je2vsgsg65f90rpse4ja8kbgi3m8u7.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -29,6 +37,13 @@
             {
               "client_id": "1018530647998-s0je2vsgsg65f90rpse4ja8kbgi3m8u7.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "1018530647998-hsvia7oksk8vtshtpve2sfs9ujrorjs2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.shopLocal"
+              }
             }
           ]
         }
