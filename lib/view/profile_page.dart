@@ -10,7 +10,6 @@ import 'dart:io';
 import '../controller/seller_controller.dart';
 import '../models/user_model.dart';
 import 'network_image_builder.dart';
-import 'network_image_builder_with_widget.dart';
 
 
 class ProfileScreen extends StatefulWidget {
@@ -56,7 +55,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       backgroundImage: _selectedImage != null ? FileImage(_selectedImage!) : null,
                       child: _selectedImage == null ? const Icon(Icons.camera_alt, size: 40) : null,
                     ),
-
                     TextButton(
                       onPressed: _pickImage,
                       child: Text(_selectedImage == null ? 'Add Profile Image' : 'Change Image'),

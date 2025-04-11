@@ -73,15 +73,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         // 3. Navigate to appropriate screen based on user type
         Navigator.of(context).pop(); // Remove loading dialog
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) => HomePage(
-                onThemeChanged: (isDark) {
-                  // Handle theme change if needed
-                },)
-          ),
-        );
+        Navigator.pushReplacementNamed(context, '/home');
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -192,7 +184,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your email';
                   }
-                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                  if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
                     return 'Please enter a valid email';
                   }
                   return null;

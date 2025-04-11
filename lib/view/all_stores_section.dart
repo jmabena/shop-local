@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:shop_local/view/seller_page.dart';
-
-import '../controller/deals_controller.dart';
-import '../controller/seller_controller.dart';
 import '../models/seller_model.dart';
 import 'network_image_builder.dart';
 
@@ -36,9 +32,7 @@ class AllStoresSection extends StatelessWidget {
             return GestureDetector(
               onTap: () {
                 Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => SellerPage(sellerData: sellerData),
-
-                ));
+                    builder: (context) => SellerPage(sellerData: sellerData,)));
               },
               child: _buildStoreItem(sellerData),
             );
@@ -66,7 +60,7 @@ class AllStoresSection extends StatelessWidget {
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                     child: Container(
-                      height: 150,
+                      height: 180,
                       width: double.infinity,
                       decoration: BoxDecoration(
                           image: DecorationImage(
@@ -77,25 +71,52 @@ class AllStoresSection extends StatelessWidget {
                     ),
                   ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                 Text(
-                  data.organizationName,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 1,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: NetworkImageWithFallback(
+                    imageUrl: data.logoUrl,
+                    fallbackWidget: const Icon(Icons.logo_dev),
+                    builder: (imageProvider) =>
+                        CircleAvatar(
+                          radius: 30,
+                          backgroundImage: imageProvider,
+                        ),
+                  )
+                ),
+              ),
+              // Wrap the Column in Expanded so that it knows its width constraints
+              Expanded(
+                flex: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        data.organizationName,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        data.organizationDesc,
+                        style: const TextStyle(color: Colors.grey),
+                        softWrap: true,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 8),
-                 Text(
-                  data.organizationDesc,
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),

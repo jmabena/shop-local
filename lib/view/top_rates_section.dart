@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
-class TopRatesSection extends StatelessWidget {
-  final List<String> imageUrls = [
-    "assets/bg.jpg",
-    "assets/bg.jpg",
-    "assets/bg.jpg",
-    "assets/bg.jpg", // Added more items for testing
-  ];
+import '../models/top_rate.dart';
 
-  TopRatesSection({super.key});
+class TopRatesSection extends StatelessWidget {
+  final List<TopRate> topRates;
+
+  const TopRatesSection({super.key, required this.topRates});
 
   @override
   Widget build(BuildContext context) {
@@ -19,61 +16,52 @@ class TopRatesSection extends StatelessWidget {
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Text(
-            "Top Rated",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            "Top Rates",
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
         ),
-        SizedBox(
-          height: 200, // Constrained height
-          child: CarouselSlider(
-            options: CarouselOptions(
-              height: 200,
+
+        CarouselSlider(
+          options: CarouselOptions(
+              height: 280,
               autoPlay: true,
-              viewportFraction: 0.9, // Better for side peeking
-              enableInfiniteScroll: true,
-              autoPlayInterval: const Duration(seconds: 3),
-              autoPlayCurve: Curves.fastOutSlowIn,
+              animateToClosest: true,
+              pauseAutoPlayOnTouch: true,
+              pauseAutoPlayInFiniteScroll: true,
+              pauseAutoPlayOnManualNavigate: true,
+              autoPlayAnimationDuration: const Duration(seconds: 2),
               enlargeCenterPage: true,
-              padEnds: false,
-            ),
-            items: imageUrls.map((url) {
-              return Builder(
-                builder: (BuildContext context) {
-                  return Container(
-                    width: MediaQuery.of(context).size.width,
-                    margin: const EdgeInsets.symmetric(horizontal: 5),
-                    child: GestureDetector(
-                      onTap: () {},
-                      child: _buildImageItem(url),
-                    ),
-                  );
-                },
-              );
-            }).toList(),
+              viewportFraction: 1.0,
+              scrollPhysics: const BouncingScrollPhysics()
           ),
+          items: topRates.map((topRate) {
+            return Container(
+              margin: const EdgeInsets.all(5),
+              width: 450,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.network(
+                  topRate.imageUrl,
+                  fit: BoxFit.cover ,
+                  errorBuilder: (_, __, ___) =>
+                      Image.asset('assets/images/one.png'),),
+              ),
+            );
+          }).toList(),
         ),
       ],
     );
   }
-
   Widget _buildImageItem(String url) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-        side: const BorderSide(color: Colors.blue, width: 2),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 5),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.blue, width: 2),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(15),
-        child: Image.asset(
-          url,
-          fit: BoxFit.cover,
-          width: double.infinity,
-          height: double.infinity,
-        ),
+        borderRadius: BorderRadius.circular(10),
+        child: Image.asset(url, fit: BoxFit.cover, width: double.infinity, height: 180),
       ),
     );
   }

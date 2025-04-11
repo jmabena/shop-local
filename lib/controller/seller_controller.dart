@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
+import '../models/categories_model.dart';
 import '../models/product_model.dart';
 import '../models/seller_model.dart';
 
@@ -23,8 +24,25 @@ class SellerController extends ChangeNotifier{
       sellerInfo.toMap(),
       SetOptions(merge: true),
     );
+
+    // Create or update the category document.
+    // Using the organizationType as the document ID ensures uniqueness.
+    final category = CategoryModel(
+      id: sellerInfo.organizationType,  // for example, "Food", "Clothing", etc.
+      name: sellerInfo.organizationType,
+    );
+
+    await _firestore.collection('categories')
+        .doc(sellerInfo.organizationType)
+        .set(category.toMap(), SetOptions(merge: true));
   }
 
+
+  Stream<List<CategoryModel>> getCategories() {
+    return _firestore.collection('categories').snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) => CategoryModel.fromMap(doc.data())).toList();
+    });
+  }
 
   Stream<SellerModel> getSellerInfo(String? userId) {
     return _firestore.collection('sellers').doc(userId).snapshots().map((doc) {
@@ -33,6 +51,14 @@ class SellerController extends ChangeNotifier{
       }
       throw Exception('Seller not found');
     });
+  }
+
+  Future<SellerModel?> getSellerInfoOnce(String userId) async {
+    final doc = await _firestore.collection('sellers').doc(userId).get();
+    if (doc.exists && doc.data() != null) {
+      return SellerModel.fromMap(doc.data()!, userId);
+    }
+    return null;
   }
   Future<ProductModel> getSellerProduct(String? userId, String? productId) async {
     final doc = await _firestore.collection('sellers').doc(userId).collection('products').doc(productId).get();

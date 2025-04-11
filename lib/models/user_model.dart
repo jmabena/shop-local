@@ -39,7 +39,7 @@ class UserModel {
   static UserModel fromMap(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     return UserModel(
-      id: data['id'] ?? '',
+      id: doc.id,
       photoUrl: data['photoUrl'] ?? '',
       userType: data['userType'] ?? '',
       address: data['address'] ?? '',
@@ -49,4 +49,5 @@ class UserModel {
       updatedAt: data['updatedAt'] ?? '',
     );
   }
+
 }

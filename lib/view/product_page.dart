@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shop_local/view/network_image_builder.dart';
 
 import '../controller/cart_controller.dart';
@@ -7,6 +8,7 @@ import '../controller/deals_controller.dart';
 import '../controller/user_controller.dart';
 import '../models/deals_model.dart';
 import '../models/product_model.dart';
+import 'cart_icon_widget.dart';
 import 'create_deal_page.dart';
 import 'order_page.dart';
 
@@ -21,7 +23,6 @@ class ProductPage extends StatefulWidget {
 }
 
 class _ProductPageState extends State<ProductPage> {
-   final CartController cartController = CartController();
 
 
    @override
@@ -31,19 +32,12 @@ class _ProductPageState extends State<ProductPage> {
 
   @override
   Widget build(BuildContext context) {
-     final firebaserUser = FirebaseAuth.instance.currentUser;
+    final firebaserUser = FirebaseAuth.instance.currentUser;
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 10,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => OrderPage()));
-            },
-          ),
+          CartIconWithBadge(),
         ],
       ),
       body: Container(
@@ -194,7 +188,7 @@ class _ProductPageState extends State<ProductPage> {
               hasDeal: widget.productData.hasDeal,
 
             );
-            await cartController.addToCart(product);
+            await context.read<CartController>().addToCart(product);
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text("Product added to cart successfully!"), duration: Duration(seconds: 1)),
             );

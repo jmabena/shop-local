@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:shop_local/controller/Authetication_Phase.dart';
 import 'package:shop_local/view/home_page.dart';
 import 'package:shop_local/view/login_screen.dart';
+import 'controller/cart_controller.dart';
 import 'controller/deals_controller.dart';
 import 'controller/seller_controller.dart';
 import 'controller/user_controller.dart';
@@ -20,9 +21,11 @@ Future<void> main() async {
 
   runApp(MultiProvider(
     providers: [
-      //ChangeNotifierProvider(create: (_) => UserController()),
+      ChangeNotifierProvider(create: (_) => UserController()),
       ChangeNotifierProvider(create: (_) => DealsController()),
       ChangeNotifierProvider(create: (_) => SellerController()),
+      ChangeNotifierProvider(create: (_) => CartController()),
+
     ],
     child: const ShopLocalApp(),
   ),);
@@ -38,7 +41,6 @@ class ShopLocalApp extends StatefulWidget {
 }
 
 class _ShopLocalAppState extends State<ShopLocalApp>{
-  // This widget is the root of your application.
   final ValueNotifier<ThemeMode> _themeMode = ValueNotifier(ThemeMode.light);
   // This widget is the root of your application.
   @override
@@ -47,22 +49,22 @@ class _ShopLocalAppState extends State<ShopLocalApp>{
       valueListenable: _themeMode,
       builder: (context, themeMode, child) {
         return MaterialApp(
+          title: 'ShopLocalApp',
           debugShowCheckedModeBanner: false,
           theme: ThemeData.light(),
           darkTheme: ThemeData.dark(),
           themeMode: themeMode,
-          initialRoute: '/',
+          home: AuthGate(),
           routes: {
-            '/': (context) => const AuthGate(),
-            '/home': (context) => HomePage(
-              onThemeChanged: (isDark) {
-                _themeMode.value = isDark ? ThemeMode.dark : ThemeMode.light;
-              },
-            ),
             '/login': (context) => const LoginScreen(),
+            '/home' : (context) => HomePage(onThemeChanged: (isDark) {
+              _themeMode.value = isDark ? ThemeMode.dark : ThemeMode.light;
+            }),
           },
+
         );
       },
     );
   }
 }
+

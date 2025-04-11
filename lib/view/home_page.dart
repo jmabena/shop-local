@@ -1,14 +1,17 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shop_local/view/network_image_builder_with_widget.dart';
-import '../controller/deals_controller.dart';
+import 'package:shop_local/view/top_rates_section.dart';
+import '../controller/FirebaseService.dart';
+import '../controller/cart_controller.dart';
 import '../controller/seller_controller.dart';
 import '../controller/user_controller.dart';
 import '../models/seller_model.dart';
 import '../models/user_model.dart';
-import 'FilterMenu.dart';
+import 'cart_icon_widget.dart';
+import 'filter_menu.dart';
 import 'deals_screen.dart';
+import 'message_screen.dart';
 import 'network_image_builder.dart';
 import 'order_page.dart';
 import 'profile_page.dart';
@@ -26,10 +29,12 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final FirebaseService _firebaseService = FirebaseService();
   bool _isDarkMode = false;
   List<String> _filteredItems = [];
   int _selectedIndex = 0;
   List<SellerModel> _filteredSellerList =[];
+  List<SellerModel> sellers =[];
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
@@ -47,21 +52,23 @@ class _HomePageState extends State<HomePage> {
     widget.onThemeChanged(_isDarkMode);
   }
 
-  void _filterItems(int index) {
+  void _filterItems(int index, String title) {
     setState(() {
       _selectedIndex = index;
-      if (index == 0) {
-        _filteredItems = List.from(_filteredItems);
+      if (index == 0 || title == "All") {
+        _filteredSellerList =  sellers;
       } else {
-        _filteredItems = _filteredItems.where((item) => item.contains("$index")).toList();
+        _filteredSellerList = sellers.where((seller) {
+          return seller.organizationType == title;
+        }).toList();
       }
     });
   }
 
   List<SellerModel> _filterSellers(String query, List<SellerModel> sellers) {
     return sellers.where((seller) =>
-        seller.organizationName.toLowerCase().contains(query.toLowerCase())).toList();
-        //seller.organizationDesc.toLowerCase().contains(query.toLowerCase())).toList();
+        seller.organizationName.toLowerCase().contains(query.toLowerCase()) ||
+        seller.organizationType.toLowerCase().contains(query.toLowerCase())).toList();
   }
 
   Widget _buildSellerInfoBanner(List<SellerModel> seller) {
@@ -93,7 +100,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final firebaseUser = FirebaseAuth.instance.currentUser;
     return Scaffold(
-      backgroundColor: _isDarkMode ? Colors.black : Colors.white,
+     // backgroundColor: _isDarkMode ? Colors.black : Colors.white,
       key: _scaffoldKey,
       drawer: Drawer(
         child: ListView(
@@ -117,7 +124,6 @@ class _HomePageState extends State<HomePage> {
                     return const Center(child: Text("User profile not found"));
                   }
                   UserModel userData = snapshot.data!;
-                  print(userData);
                   return Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -163,11 +169,11 @@ class _HomePageState extends State<HomePage> {
             ListTile(
               leading: const Icon(Icons.message),
               title: const Text('Messages'),
-              onTap: () {},
+              onTap: () {Navigator.push(context, MaterialPageRoute(builder: (context) =>  HomeScreen()));},
             ),
             ListTile(
               leading: const Icon(Icons.newspaper),
-              title: const Text('News & Updates'),
+              title: const Text('Deals & Offers'),
               onTap: () {
                 Navigator.push(
                   context,
@@ -193,7 +199,19 @@ class _HomePageState extends State<HomePage> {
         title: SizedBox(
           child: TextField(
             decoration: InputDecoration(
-              hintText: 'Search...',
+              hintText: 'Search',
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: _searchQuery.isNotEmpty
+                  ? IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    _searchController.clear();
+                    setState(() {
+                      _searchQuery = '';
+                    });
+                  }
+              )
+                  : null,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(50),
               ),
@@ -209,12 +227,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => OrderPage()));
-            },
-          ),
+          CartIconWithBadge(),
           IconButton(
             icon: Icon(_isDarkMode ? Icons.dark_mode : Icons.light_mode),
             onPressed: _toggleTheme,
@@ -225,10 +238,34 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                FilterMenu(
-                  selectedIndex: _selectedIndex,
-                  onItemSelected: _filterItems,
-                  items: menuItems,
+                StreamBuilder(
+                    stream: context.read<SellerController>().getCategories(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (snapshot.hasError) {
+                        return Center(child: Text("Error: ${snapshot.error}"));
+                      }
+                      if (!snapshot.hasData) {
+                        return const SizedBox.shrink();
+                      }
+                      final categories = snapshot.data!;
+                      return FilterMenu(
+                        selectedIndex: _selectedIndex,
+                        onItemSelected: _filterItems,
+                        categories: categories,
+                      );
+                    }
+                ),
+                FutureBuilder(
+                  future: _firebaseService.getTopRates(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const CircularProgressIndicator();
+                    }
+                    return TopRatesSection(topRates: snapshot.data!);
+                  },
                 ),
                 // Add Stream Builder for seller info
                 StreamBuilder(

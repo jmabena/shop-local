@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shop_local/controller/seller_controller.dart';
 import '../controller/deals_controller.dart';
 import '../models/deals_model.dart';
 import '../models/product_model.dart';
 import 'package:intl/intl.dart';
+
+import '../models/seller_model.dart';
 
 class CreateDealPage extends StatefulWidget {
   final ProductModel product;
@@ -20,10 +23,25 @@ class _CreateDealPageState extends State<CreateDealPage> {
   final TextEditingController _conditionController = TextEditingController();
   DateTime _expiryDate = DateTime.now();
   bool _isStoreWide = false;
-  String? _selectedProductId;
-  String? _storeName = "Sample Store";
-  String? _storeImage = "https://example.com/logo.png";
+  SellerModel? seller;
+  String? _storeName;
+  String? _storeImage;
 
+  @override
+  void initState() {
+    super.initState();
+    _getSellerInfo();
+  }
+
+  void _getSellerInfo() async {
+    seller = await context.read<SellerController>().getSellerInfoOnce(widget.product.sellerId);
+    if (seller != null) {
+      setState(() {
+        _storeName = seller!.organizationName;
+        _storeImage = seller!.picUrl;
+      });
+    }
+  }
   void _submitDeal() {
     Deal deal = Deal(
       id: '',

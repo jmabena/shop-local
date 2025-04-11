@@ -37,7 +37,7 @@ class NetworkImageWithFallback extends StatelessWidget {
         imageUrl: imageUrl!,
         placeholder: (context, url) => const CircularProgressIndicator(),
         errorWidget: (context, url, error) =>
-        builder != null ? builder!(AssetImage(fallbackAsset!)) : const Icon(
+        builder != null ? (fallbackAsset != null ? builder!(AssetImage(fallbackAsset!)) : fallbackWidget!) : const Icon(
             Icons.error),
         imageBuilder: builder != null ? (context, imageProvider) =>
             builder!(imageProvider) : null,
