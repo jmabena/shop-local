@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import 'package:shop_local/models/message.dart'; // Make sure you have this
 import 'package:shop_local/controller/seller_controller.dart';
 
@@ -15,17 +16,15 @@ class MessageScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentUser = FirebaseAuth.instance.currentUser!;
-    final sellerController = SellerController();
-    final userController = UserController();
     final chatService = ChatService();
 
     // Fetch the current user
     Future<dynamic> getPeerUser(String peerId) async {
-      final sellerUser = await sellerController.getSellerInfoOnce(peerId);
+      final sellerUser = await context.read<SellerController>().getSellerInfoOnce(peerId);
       if (sellerUser != null) {
         return sellerUser;
       }
-      return await userController.getUserById(peerId);
+      return await context.read<UserController>().getUserById(peerId);
     }
 
 

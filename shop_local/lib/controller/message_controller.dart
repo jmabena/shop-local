@@ -4,12 +4,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:shop_local/controller/user_controller.dart';
 import '../models/message.dart';
 
 class ChatService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final userController = UserController();
   final String userId = FirebaseAuth.instance.currentUser!.uid;
   final String userEmail = FirebaseAuth.instance.currentUser!.email!;
   late String chatId;

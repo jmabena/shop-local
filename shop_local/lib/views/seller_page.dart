@@ -8,8 +8,8 @@ import '../controller/seller_controller.dart';
 import '../models/deals_model.dart';
 import '../models/product_model.dart';
 import '../models/seller_model.dart';
+import 'cart_icon_widget.dart';
 import 'chat_screen.dart';
-import 'order_page.dart';
 
 class SellerPage extends StatefulWidget {
   final SellerModel sellerData;
@@ -65,16 +65,10 @@ class _SellerPageState extends State<SellerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 10,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => OrderPage()));
-            },
-          ),
+          CartIconWithBadge(),
         ],
       ),
       body: Container(

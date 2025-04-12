@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:shop_local/models/product_model.dart';
 import 'package:shop_local/models/seller_model.dart';
 import 'package:shop_local/models/user_model.dart';
@@ -21,7 +22,6 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
   final String userId = FirebaseAuth.instance.currentUser!.uid;
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final ImagePicker _picker = ImagePicker();
-  final SellerController _sellerController = SellerController();
   late String logoUrl;
   late String pictureUrl;
   late String productUrl;
@@ -300,7 +300,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
         productDesc: _productDesc.text,
         sellerId: widget.user.uid!,
       );
-      await _sellerController.addSellerProduct(productInfo, userId);
+      await context.read<SellerController>().addSellerProduct(productInfo, userId);
       // Optionally clear the fields after successful addition:
       _productName.clear();
       _productPrice.clear();
@@ -344,7 +344,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
         organizationDesc: _businessDescriptionController.text,
       );
 
-      await _sellerController.saveSellerInfo(sellerInfo);
+      await context.read<SellerController>().saveSellerInfo(sellerInfo);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Seller information added successfully")),
@@ -368,7 +368,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
         children: [
           // Conditionally display seller information if it exists.
           StreamBuilder<SellerModel?>(
-            stream: _sellerController.getSellerInfo(userId),
+            stream: context.read<SellerController>().getSellerInfo(userId),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());

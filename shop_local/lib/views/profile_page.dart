@@ -2,6 +2,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:shop_local/controller/user_controller.dart';
 import 'dart:io';
 import 'package:shop_local/models/user_model.dart';
@@ -22,9 +23,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final ImagePicker _picker = ImagePicker();
   final _formKey = GlobalKey<FormState>();
   String? photoUrl;
-
-  final UserController userController = UserController();
-  final SellerController sellerController = SellerController();
 
 
   Future<void> _pickImage() async {
@@ -102,10 +100,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _deleteAccount(UserModel userData) async{
     try{
       if (userData.userType == 'seller') {
-        await sellerController.deleteSellerInfo(userData.uid!);
-        await sellerController.deleteSellerProducts(userData.uid!);
+        await context.read<SellerController>().deleteSellerInfo(userData.uid!);
+        await context.read<SellerController>().deleteSellerProducts(userData.uid!);
       }
-      await userController.deleteUser(userData.uid!);
+      await context.read<UserController>().deleteUser(userData.uid!);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Account deleted successfully'),
@@ -134,7 +132,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     try {
       if (imageUrl != null) {
-        await userController.saveProfileImage(imageUrl);
+        await context.read<UserController>().saveProfileImage(imageUrl);
         _showSuccessMessage();
       }
       setState(() {}); // trigger a rebuild to update the UI
@@ -157,7 +155,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: firebaseUser == null
           ? const Center(child: Text('Please sign in'))
           : StreamBuilder<UserModel>(
-        stream: userController.getCurrentUser(firebaseUser.uid),
+        stream: context.read<UserController>().getCurrentUser(firebaseUser.uid),
         builder: (context, snapshot) {
           // If data exists, assume the profile has been created
           if (snapshot.hasData) {
