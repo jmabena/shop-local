@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../controller/cart_controller.dart';
 import 'order_page.dart';
 
 class CartIconWithBadge extends StatelessWidget {
-  final CartController cartController;
 
-  const CartIconWithBadge({super.key, required this.cartController});
+  const CartIconWithBadge({super.key});
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<int>(
-      stream: cartController.getCartItemCount(),
+      stream: context.read<CartController>().getCartItemCount(),
       builder: (context, snapshot) {
         final itemCount = snapshot.data ?? 0;
 

@@ -1,9 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shop_local/views/network_image_builder.dart';
 import '../controller/cart_controller.dart';
-import '../controller/deals_controller.dart';
-import '../controller/user_controller.dart';
 import '../models/deals_model.dart';
 import '../models/product_model.dart';
 import 'cart_icon_widget.dart';
@@ -20,10 +19,6 @@ class ProductPage extends StatefulWidget {
 }
 
 class _ProductPageState extends State<ProductPage> {
-  final UserController userController = UserController();
-  final DealsController dealsController = DealsController();
-  final CartController cartController = CartController();
-
 
   @override
   void initState() {
@@ -37,7 +32,7 @@ class _ProductPageState extends State<ProductPage> {
       appBar: AppBar(
         elevation: 10,
         actions: [
-          CartIconWithBadge(cartController: CartController(),),
+          CartIconWithBadge(),
         ],
       ),
       body: Container(
@@ -51,7 +46,7 @@ class _ProductPageState extends State<ProductPage> {
             //buildSection("Frequently bought together"),
             //buildFrequentlyBoughtGrid(),
             SizedBox(height: 20),
-            firebaserUser?.uid == widget.productData.sellerId ? buildCreateDealButton() : buildOrderButton(cartController),
+            firebaserUser?.uid == widget.productData.sellerId ? buildCreateDealButton() : buildOrderButton(),
           ],
         ),
       ),
@@ -147,7 +142,7 @@ class _ProductPageState extends State<ProductPage> {
     );
   }
 
-  Widget buildOrderButton(CartController cartController) {
+  Widget buildOrderButton() {
     return Center(
       child: ElevatedButton(
         onPressed: () async {
@@ -188,7 +183,7 @@ class _ProductPageState extends State<ProductPage> {
               hasDeal: widget.productData.hasDeal,
 
             );
-            await cartController.addToCart(product);
+            await context.read<CartController>().addToCart(product);
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text("Product added to cart successfully!"), duration: Duration(seconds: 1)),
             );

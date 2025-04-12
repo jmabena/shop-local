@@ -11,14 +11,11 @@ class OrderPage extends StatefulWidget {
 }
 
 class _OrderPageState extends State<OrderPage> {
-  late CartController cartController;
   @override
   Widget build(BuildContext context) {
-    cartController = Provider.of<CartController>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
         title: Text("Order Summary"),
-        backgroundColor: Colors.white,
         elevation: 10,
       ),
       body: Container(
@@ -32,7 +29,7 @@ class _OrderPageState extends State<OrderPage> {
             Expanded( // Wrap the ListView in Expanded to give it a bounded height
               child:
               StreamBuilder(
-                stream: cartController.getCartEntries(),
+                stream: context.read<CartController>().getCartEntries(),
                 builder: (context, snapshot) {
                   final products = snapshot.data;
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -70,7 +67,7 @@ class _OrderPageState extends State<OrderPage> {
                                     IconButton(
                                       icon: Icon(Icons.remove),
                                       onPressed: () async {
-                                        await cartController.removeOneFromCart(item['product'].productId);
+                                        await context.read<CartController>().removeOneFromCart(item['product'].productId);
                                         setState(() {}); // Refresh UI
                                       },
                                     ),
@@ -80,7 +77,7 @@ class _OrderPageState extends State<OrderPage> {
                                     IconButton(
                                       icon: Icon(Icons.add),
                                       onPressed: () async {
-                                        await cartController.addToCart(item['product']);
+                                        await context.read<CartController>().addToCart(item['product']);
                                         setState(() {}); // Refresh UI
                                       },
                                     ),
@@ -176,7 +173,7 @@ class _OrderPageState extends State<OrderPage> {
                 actions: [
                   TextButton(
                     onPressed: () {
-                      cartController.deleteAllCartEntries();
+                      context.read<CartController>().deleteAllCartEntries();
                       Navigator.pop(context);
                     },
                     child: Text("OK"),

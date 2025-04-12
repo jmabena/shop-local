@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 import 'package:shop_local/controller/Authetication_Phase.dart';
 import 'package:shop_local/controller/cart_controller.dart';
 import 'package:shop_local/views/home_page.dart';
 import 'package:shop_local/views/login_screen.dart';
 import 'controller/deals_controller.dart';
 import 'controller/seller_controller.dart';
+import 'controller/user_controller.dart';
 import 'firebase_options.dart';
 
 
@@ -17,6 +19,7 @@ Future<void> main() async {
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (_) => CartController()),
+      ChangeNotifierProvider(create: (_) => UserController()),
       ChangeNotifierProvider(create: (_) => DealsController()),
       ChangeNotifierProvider(create: (_) => SellerController()),
     ],

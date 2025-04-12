@@ -14,7 +14,7 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -53,15 +53,13 @@ class _LoginScreenState extends State<LoginScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
+      Navigator.pushReplacementNamed(context, '/home');
     } on FirebaseAuthException catch (e) {
       _showErrorSnackbar("Sign In Error", e.message ?? 'Invalid credentials');
     } catch (e) {
       _showErrorSnackbar("Error", 'An unexpected error occurred');
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        Navigator.pushReplacementNamed(context, '/home');
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

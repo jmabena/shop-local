@@ -12,11 +12,10 @@ class CreateDealPage extends StatefulWidget {
   const CreateDealPage({super.key, required this.product});
 
   @override
-  _CreateDealPageState createState() => _CreateDealPageState();
+  State<CreateDealPage> createState() => _CreateDealPageState();
 }
 
 class _CreateDealPageState extends State<CreateDealPage> {
-  final SellerController _sellerController = SellerController();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _discountController = TextEditingController();
   final TextEditingController _conditionController = TextEditingController();
@@ -33,7 +32,7 @@ class _CreateDealPageState extends State<CreateDealPage> {
   }
 
   void _getSellerInfo() async {
-    seller = await _sellerController.getSellerInfoOnce(widget.product.sellerId);
+    seller = await context.read<SellerController>().getSellerInfoOnce(widget.product.sellerId);
     if (seller != null) {
       setState(() {
         _storeName = seller!.organizationName;
