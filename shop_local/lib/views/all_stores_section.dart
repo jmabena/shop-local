@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shop_local/model/seller_model.dart';
 import 'package:shop_local/views/seller_page.dart';
+import '../models/seller_model.dart';
+import 'network_image_builder.dart';
 
 class AllStoresSection extends StatelessWidget {
   final List<SellerModel> seller;
@@ -52,26 +53,45 @@ class AllStoresSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: Image.network(
-              data.picUrl, // Placeholder image
-              height: 180, // Fixed image height
-              fit: BoxFit.cover,
-            ),
+          NetworkImageWithFallback(
+            imageUrl: data.picUrl,
+            fallbackAsset: 'assets/fruits.jpg',
+            builder: (imageProvider) =>
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                  child: Container(
+                    height: 180,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: imageProvider,
+                          fit: BoxFit.cover,
+                        )
+                    ),
+                  ),
+                ),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: CircleAvatar(
-                  radius: 30,
-                  backgroundImage: NetworkImage(data.logoUrl),
+              Expanded(
+                flex: 1,
+                child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: NetworkImageWithFallback(
+                      imageUrl: data.logoUrl,
+                      fallbackWidget: const Icon(Icons.logo_dev),
+                      builder: (imageProvider) =>
+                          CircleAvatar(
+                            radius: 30,
+                            backgroundImage: imageProvider,
+                          ),
+                    )
                 ),
               ),
               // Wrap the Column in Expanded so that it knows its width constraints
               Expanded(
+                flex: 4,
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: Column(

@@ -1,15 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../controller/cart_controller.dart';
-import '../controller/deals_controller.dart';
 import '../controller/seller_controller.dart';
 import '../controller/user_controller.dart';
-import '../model/seller_model.dart';
-import '../model/user_model.dart';
+import '../models/seller_model.dart';
+import '../models/user_model.dart';
 import 'cart_icon_widget.dart';
 import 'filter_menu.dart';
 import 'deals_screen.dart';
+import 'message_screen.dart';
 import 'profile_page.dart';
 import 'all_stores_section.dart';
 
@@ -110,7 +109,7 @@ class _HomePageState extends State<HomePage> {
                 color: Colors.blue,
               ),
               child: StreamBuilder<UserModel>(
-                stream: userController.getCurrentUser(),
+                stream: userController.getCurrentUser(firebaseUser!.uid),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
@@ -138,7 +137,7 @@ class _HomePageState extends State<HomePage> {
 
                       const SizedBox(height: 5),
                       Text(
-                        firebaseUser?.email ?? '',
+                        userData.email,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
@@ -168,7 +167,13 @@ class _HomePageState extends State<HomePage> {
             ListTile(
               leading: const Icon(Icons.message),
               title: const Text('Messages'),
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const MessageScreen()),
+                );
+              },
             ),
             ListTile(
               leading: const Icon(Icons.newspaper),
@@ -177,10 +182,8 @@ class _HomePageState extends State<HomePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ChangeNotifierProvider<DealsController>(
-                      create: (context) => DealsController(),
-                      child: DealsPage(),
-                    ),
+                    builder: (context) =>
+                        DealsPage(),
                   ),
                 );
               },

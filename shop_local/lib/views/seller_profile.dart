@@ -3,9 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:shop_local/model/product_model.dart';
-import 'package:shop_local/model/seller_model.dart';
-import 'package:shop_local/model/user_model.dart';
+import 'package:shop_local/models/product_model.dart';
+import 'package:shop_local/models/seller_model.dart';
+import 'package:shop_local/models/user_model.dart';
 
 import '../controller/seller_controller.dart';
 
@@ -200,7 +200,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                   children: [
                     TextButton(
                       onPressed: _pickProductImage,
-                      child: const Text("Pick Business Pic"),
+                      child: const Text("Pick Product Pic"),
                     ),
                     const SizedBox(width: 10),
                     // Show a preview of the business picture if selected
@@ -287,7 +287,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
   Future<void> _addProductInformation() async {
     try {
       if (_productImage != null) {
-        final ref = _storage.ref().child('products/${widget.user.id}/${DateTime.now()
+        final ref = _storage.ref().child('products/${widget.user.uid}/${DateTime.now()
             .millisecondsSinceEpoch}.jpg');
         await ref.putFile(_productImage!);
         pictureUrl = await ref.getDownloadURL();
@@ -298,7 +298,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
         productName: _productName.text,
         productPrice: double.parse(_productPrice.text),
         productDesc: _productDesc.text,
-        sellerId: widget.user.id!,
+        sellerId: widget.user.uid!,
       );
       await _sellerController.addSellerProduct(productInfo, userId);
       // Optionally clear the fields after successful addition:
@@ -323,19 +323,19 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
     try {
       // Initialize URLs
       if (_businessLogo != null) {
-        final ref = _storage.ref().child('seller_logos').child('${widget.user.id}_logo.jpg');
+        final ref = _storage.ref().child('seller_logos').child('${widget.user.uid}_logo.jpg');
         await ref.putFile(_businessLogo!);
         logoUrl = await ref.getDownloadURL();
       }
       if (_businessPicture != null) {
-        final ref = _storage.ref().child('seller_pictures').child('${widget.user.id}_business.jpg');
+        final ref = _storage.ref().child('seller_pictures').child('${widget.user.uid}_business.jpg');
         await ref.putFile(_businessPicture!);
         pictureUrl = await ref.getDownloadURL();
       }
 
-      // Create the seller model data
+      // Create the seller models data
       final sellerInfo = SellerModel(
-        sellerId: widget.user.id!,
+        sellerId: widget.user.uid!,
         logoUrl: logoUrl,
         picUrl: pictureUrl,
         licenseNumber: _licenseNumberController.text,

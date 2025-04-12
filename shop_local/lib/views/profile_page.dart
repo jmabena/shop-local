@@ -4,10 +4,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shop_local/controller/user_controller.dart';
 import 'dart:io';
-import 'package:shop_local/model/user_model.dart';
+import 'package:shop_local/models/user_model.dart';
 import 'package:shop_local/views/seller_profile.dart';
 
 import '../controller/seller_controller.dart';
+import 'network_image_builder.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -101,10 +102,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _deleteAccount(UserModel userData) async{
     try{
       if (userData.userType == 'seller') {
-        await sellerController.deleteSellerInfo(userData.id!);
-        await sellerController.deleteSellerProducts(userData.id!);
+        await sellerController.deleteSellerInfo(userData.uid!);
+        await sellerController.deleteSellerProducts(userData.uid!);
       }
-      await userController.deleteUser(userData.id!);
+      await userController.deleteUser(userData.uid!);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Account deleted successfully'),
@@ -156,7 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: firebaseUser == null
           ? const Center(child: Text('Please sign in'))
           : StreamBuilder<UserModel>(
-        stream: userController.getCurrentUser(),
+        stream: userController.getCurrentUser(firebaseUser.uid),
         builder: (context, snapshot) {
           // If data exists, assume the profile has been created
           if (snapshot.hasData) {
@@ -168,15 +169,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     GestureDetector(
                       onTap: _showAddProfileImageDialog,
-                      child: CircleAvatar(
-                        radius: 60,
-                        backgroundImage: userData.photoUrl != null
-                            ? NetworkImage(userData.photoUrl!)
-                            : null,
-                        child: userData.photoUrl == null
-                            ? const Icon(Icons.person, size: 60)
-                            : null,
-                      ),
+                        child: NetworkImageWithFallback(
+                          imageUrl: userData.photoUrl,
+                          fallbackWidget: const Icon(Icons.person, size: 60),
+                          builder: (imageProvider) => CircleAvatar(
+                            backgroundImage: imageProvider,
+                            radius: 60,
+                          ),
+                        ),
                     ),
                     const SizedBox(height: 20),
                     Text(firebaseUser.email ?? 'No email provided',

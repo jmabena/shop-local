@@ -1,65 +1,47 @@
-import 'package:flutter/foundation.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
-import 'dart:ui' as ui;
-import 'package:flutter/services.dart';
 
-class NetworkImageWithFallback extends ImageProvider<NetworkImageWithFallback> {
+class NetworkImageWithFallback extends StatelessWidget {
   final String? imageUrl;
-  final String fallbackAsset;
+  final String? fallbackAsset; // Path to a default image asset
+  final Widget? fallbackWidget; // An alternative widget to use as a fallback
+  final Widget Function(ImageProvider imageProvider)? builder; // A builder function that takes an ImageProvider
 
   const NetworkImageWithFallback({
+    super.key,
     required this.imageUrl,
-    required this.fallbackAsset,
+    this.fallbackAsset,
+    this.fallbackWidget,
+    this.builder
   });
 
   @override
-  Future<NetworkImageWithFallback> obtainKey(ImageConfiguration configuration) {
-    return SynchronousFuture<NetworkImageWithFallback>(this);
-  }
-
-  @override
-  ImageStreamCompleter loadImage(
-      NetworkImageWithFallback key, ImageDecoderCallback decode) {
-    final Completer<ui.Codec> completer = Completer<ui.Codec>();
-
-    // Try to load the network image first
-    if (imageUrl != null && imageUrl!.isNotEmpty) {
-      NetworkImage(imageUrl!).resolve(ImageConfiguration()).addListener(
-        ImageStreamListener(
-              (imageInfo, synchronousCall) async {
-            final ByteData? byteData =
-            await imageInfo.image.toByteData(format: ui.ImageByteFormat.png);
-            if (byteData != null) {
-              final codec =
-              await ui.instantiateImageCodec(byteData.buffer.asUint8List());
-              completer.complete(codec);
-            } else {
-              _loadFallback(completer);
-            }
-          },
-          onError: (exception, stackTrace) {
-            _loadFallback(completer);
-          },
-        ),
+  Widget build(BuildContext context) {
+    if (imageUrl == null || imageUrl!.isEmpty ||
+        !imageUrl!.startsWith('http')) {
+      // Handle missing or invalid URL
+      ImageProvider imageProvider;
+      if (fallbackAsset != null) {
+        imageProvider = AssetImage(fallbackAsset!);
+      } else if (fallbackWidget != null) {
+        return fallbackWidget!;
+      } else {
+        return const Icon(Icons.image);
+      }
+      if (builder != null) {
+        return builder!(imageProvider);
+      }
+      return Image(image: imageProvider);
+    } else {
+      return CachedNetworkImage(
+        imageUrl: imageUrl!,
+        placeholder: (context, url) => const CircularProgressIndicator(),
+        errorWidget: (context, url, error) =>
+        builder != null ? builder!(AssetImage(fallbackAsset!)) : const Icon(
+            Icons.error),
+        imageBuilder: builder != null ? (context, imageProvider) =>
+            builder!(imageProvider) : null,
       );
-    }else {
-      _loadFallback(completer);
-    }
-
-    return MultiFrameImageStreamCompleter(
-      codec: completer.future,
-      scale: 1.0,
-    );
-  }
-
-  void _loadFallback(Completer<ui.Codec> completer) async {
-    try {
-      final ByteData data = await rootBundle.load(fallbackAsset);
-      final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
-      completer.complete(codec);
-    } catch (e) {
-      completer.completeError(e);
     }
   }
 }

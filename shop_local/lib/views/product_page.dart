@@ -4,8 +4,8 @@ import 'package:shop_local/views/network_image_builder.dart';
 import '../controller/cart_controller.dart';
 import '../controller/deals_controller.dart';
 import '../controller/user_controller.dart';
-import '../model/deals_model.dart';
-import '../model/product_model.dart';
+import '../models/deals_model.dart';
+import '../models/product_model.dart';
 import 'cart_icon_widget.dart';
 import 'create_deal_page.dart';
 
@@ -59,23 +59,29 @@ class _ProductPageState extends State<ProductPage> {
   }
 
   Widget buildProductImage(ProductModel product) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        image: DecorationImage(
-          image: NetworkImageWithFallback(imageUrl: product.productUrl, fallbackAsset: 'assets/images/fruits.jpg'),
-          fit: BoxFit.cover,
-        ),
-      ),
-      height: 200,
-      width: 100,
-      child: Center(
-        child: Text(
-          product.productName,
-          style: TextStyle(fontSize: 36, color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-      ),
+    return NetworkImageWithFallback(
+        imageUrl: product.productUrl,
+        fallbackAsset: 'assets/images/fruits.jpg',
+        builder: (imageProvider) =>
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                image: DecorationImage(
+                  image: imageProvider,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              height: 200,
+              width: 100,
+              child: Center(
+                child: Text(
+                  product.productName,
+                  style: TextStyle(fontSize: 36, color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ),
+            )
     );
+
   }
 
   Widget buildDescriptionBox(ProductModel product) {
@@ -200,7 +206,7 @@ class _ProductPageState extends State<ProductPage> {
           ),
         ),
         child: Text(
-          "Place Order",
+          "Add to Cart",
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),

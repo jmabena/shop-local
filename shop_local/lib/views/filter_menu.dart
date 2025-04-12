@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../model/categories_model.dart';
+import '../models/categories_model.dart';
 
 class FilterMenu extends StatelessWidget {
   final Function(int, String) onItemSelected;
