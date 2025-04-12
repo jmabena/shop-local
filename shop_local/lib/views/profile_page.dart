@@ -8,6 +8,7 @@ import 'package:shop_local/models/user_model.dart';
 import 'package:shop_local/views/seller_profile.dart';
 
 import '../controller/seller_controller.dart';
+import 'network_image_builder.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -168,15 +169,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     GestureDetector(
                       onTap: _showAddProfileImageDialog,
-                      child: CircleAvatar(
-                        radius: 60,
-                        backgroundImage: userData.photoUrl != null
-                            ? NetworkImage(userData.photoUrl!)
-                            : null,
-                        child: userData.photoUrl == null
-                            ? const Icon(Icons.person, size: 60)
-                            : null,
-                      ),
+                        child: NetworkImageWithFallback(
+                          imageUrl: userData.photoUrl,
+                          fallbackWidget: const Icon(Icons.person, size: 60),
+                          builder: (imageProvider) => CircleAvatar(
+                            backgroundImage: imageProvider,
+                            radius: 60,
+                          ),
+                        ),
                     ),
                     const SizedBox(height: 20),
                     Text(firebaseUser.email ?? 'No email provided',

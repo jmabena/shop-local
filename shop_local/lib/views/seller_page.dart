@@ -152,7 +152,7 @@ class _SellerPageState extends State<SellerPage> {
                 children: [
                   NetworkImageWithFallback(
                     imageUrl: product.productUrl,
-                    fallbackAsset: 'assets/images/fruits.jpg',
+                    fallbackAsset: 'assets/fruits.jpg',
                     builder: (imageProvider) =>
                         Container(
                           decoration: BoxDecoration(
@@ -201,7 +201,7 @@ class _SellerPageState extends State<SellerPage> {
       children: [
         NetworkImageWithFallback(
           imageUrl: widget.sellerData.picUrl,
-          fallbackAsset: 'assets/images/bg.jpg',
+          fallbackAsset: 'assets/bg.jpg',
           builder: (imageProvider) =>
               Container(
                 decoration: BoxDecoration(
